@@ -6,7 +6,6 @@ import {
   ExtensionTypeEnum,
   Thread,
   ThreadAssistantInfo,
-  ThreadState,
   Model,
   AssistantTool,
 } from '@janhq/core'
@@ -27,24 +26,12 @@ import { experimentalFeatureEnabledAtom } from '@/helpers/atoms/AppConfig.atom'
 import { selectedModelAtom } from '@/helpers/atoms/Model.atom'
 import {
   threadsAtom,
-  threadStatesAtom,
   updateThreadAtom,
   setThreadModelParamsAtom,
   isGeneratingResponseAtom,
 } from '@/helpers/atoms/Thread.atom'
 
 const createNewThreadAtom = atom(null, (get, set, newThread: Thread) => {
-  // create thread state for this new thread
-  const currentState = { ...get(threadStatesAtom) }
-
-  const threadState: ThreadState = {
-    hasMore: false,
-    waitingForResponse: false,
-    lastMessage: undefined,
-  }
-  currentState[newThread.id] = threadState
-  set(threadStatesAtom, currentState)
-
   // add the new thread on top of the thread list to the state
   const threads = get(threadsAtom)
   set(threadsAtom, [newThread, ...threads])
@@ -62,8 +49,6 @@ export const useCreateNewThread = () => {
   const setIsGeneratingResponse = useSetAtom(isGeneratingResponseAtom)
 
   const { recommendedModel, downloadedModels } = useRecommendedModel()
-
-  const threads = useAtomValue(threadsAtom)
   const { stopInference } = useActiveModel()
 
   const requestCreateNewThread = async (
@@ -75,17 +60,6 @@ export const useCreateNewThread = () => {
     stopInference()
 
     const defaultModel = model ?? recommendedModel ?? downloadedModels[0]
-
-    if (!model) {
-      // if we have model, which means user wants to create new thread from Model hub. Allow them.
-
-      // check last thread message, if there empty last message use can not create thread
-      const lastMessage = threads[0]?.metadata?.lastMessage
-
-      if (!lastMessage && threads.length) {
-        return null
-      }
-    }
 
     // modify assistant tools when experimental on, retieval toggle enabled in default
     const assistantTools: AssistantTool = {
