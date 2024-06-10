@@ -49,7 +49,6 @@ import {
   engineParamsUpdateAtom,
   getActiveThreadModelParamsAtom,
   isGeneratingResponseAtom,
-  updateThreadAtom,
 } from '@/helpers/atoms/Thread.atom'
 
 export const queuedMessageAtom = atom(false)
@@ -58,7 +57,6 @@ export const reloadModelAtom = atom(false)
 export default function useSendChatMessage() {
   const activeThread = useAtomValue(activeThreadAtom)
   const addNewMessage = useSetAtom(addNewMessageAtom)
-  const updateThread = useSetAtom(updateThreadAtom)
   const setCurrentPrompt = useSetAtom(currentPromptAtom)
   const deleteMessage = useSetAtom(deleteMessageAtom)
   const setEditPrompt = useSetAtom(editPromptAtom)
@@ -81,7 +79,7 @@ export default function useSendChatMessage() {
   const setQueuedMessage = useSetAtom(queuedMessageAtom)
 
   const selectedModelRef = useRef<Model | undefined>()
-  const { streamChatMessages } = useCortex()
+  const { createMessage, streamChatMessages, updateMessage } = useCortex()
 
   useEffect(() => {
     modelRef.current = activeModel
@@ -219,24 +217,13 @@ export default function useSendChatMessage() {
 
     const newMessage = threadMessageBuilder.build()
 
+    await createMessage(activeThreadRef.current.id, {
+      role: ChatCompletionRole.User,
+      content: prompt,
+    })
+
     // Push to states
     addNewMessage(newMessage)
-
-    // Update thread state
-    const updatedThread: Thread = {
-      ...activeThreadRef.current,
-      updated: newMessage.created,
-      metadata: {
-        ...(activeThreadRef.current.metadata ?? {}),
-        lastMessage: prompt,
-      },
-    }
-    updateThread(updatedThread)
-
-    // Add message
-    await extensionManager
-      .get<ConversationalExtension>(ExtensionTypeEnum.Conversational)
-      ?.addNewMessage(newMessage)
 
     // Start Model if not started
     const modelId =
@@ -266,24 +253,24 @@ export default function useSendChatMessage() {
       ) ?? []
     )
 
-    // Request for inference
-    // EngineManager.instance()
-    //   .get(requestBuilder.model?.engine ?? modelRequest.engine ?? '')
-    //   ?.inference(request)
     const stream = await streamChatMessages(modelId, request.messages ?? [])
 
-    const timestamp = Date.now()
+    const createdMessage = await createMessage(request.threadId, {
+      role: ChatCompletionRole.Assistant,
+      content: '',
+    })
+
     const responseMessage: ThreadMessage = {
-      id: uuidv4(),
+      id: createdMessage.id,
       thread_id: request.threadId,
       type: request.type,
       assistant_id: request.assistantId,
       role: ChatCompletionRole.Assistant,
       content: [],
       status: MessageStatus.Pending,
-      created: timestamp,
-      updated: timestamp,
+      created: createdMessage.created_at,
       object: 'thread.message',
+      metadata: undefined,
     }
 
     if (request.type !== MessageRequestType.Summary) {
@@ -307,6 +294,9 @@ export default function useSendChatMessage() {
 
     responseMessage.status = MessageStatus.Ready
     events.emit(MessageEvent.OnMessageUpdate, responseMessage)
+    updateMessage(request.threadId, responseMessage.id, {
+      content: responseMessage.content,
+    })
 
     // Reset states
     setReloadModel(false)

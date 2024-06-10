@@ -66,7 +66,7 @@ const ModelItem: React.FC<Props> = ({ model }) => {
               <div>
                 <span className="mb-1 font-semibold ">Tags</span>
                 <div className="mt-2 flex flex-wrap gap-x-1 gap-y-1">
-                  {model.metadata.tags.map((tag: string) => (
+                  {model.metadata.tags?.map((tag: string) => (
                     <Badge key={tag} title={tag} variant="soft">
                       {tag}
                     </Badge>

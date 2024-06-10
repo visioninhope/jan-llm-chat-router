@@ -5,9 +5,11 @@ import { Assistant, Model, Thread, ThreadMessage } from '@janhq/core'
 import { Cortex } from '@janhq/cortex-node'
 
 import { ChatCompletionMessage } from '@janhq/cortex-node/dist/resources'
+import { MessageCreateParams } from '@janhq/cortex-node/dist/resources/beta/threads/messages'
 import { useAtomValue } from 'jotai'
 
 import { hostAtom } from '@/helpers/atoms/AppConfig.atom'
+import { ThreadAssistantInfo } from '@janhq/core/.'
 
 const useCortex = () => {
   const host = useAtomValue(hostAtom)
@@ -112,6 +114,30 @@ const useCortex = () => {
     [cortex.beta.threads]
   )
 
+  const createMessage = useCallback(
+    async (threadId: string, createMessageParams: MessageCreateParams) => {
+      return cortex.beta.threads.messages.create(threadId, createMessageParams)
+    },
+    [cortex.beta.threads]
+  )
+
+  const updateMessage = useCallback(
+    async (threadId: string, messageId: string, data: object) => {
+      return cortex.beta.threads.messages.update(threadId, messageId, data)
+    },
+    [cortex.beta.threads]
+  )
+
+  const createThread = useCallback(
+    async (assistantInfo: ThreadAssistantInfo[]) => {
+      return cortex.beta.threads.create({
+        // @ts-expect-error testing
+        assistants: assistantInfo,
+      })
+    },
+    [cortex.beta.threads]
+  )
+
   return {
     fetchAssistants,
     fetchThreads,
@@ -124,6 +150,9 @@ const useCortex = () => {
     deleteMessage,
     cleanThread,
     updateThread,
+    createMessage,
+    updateMessage,
+    createThread,
   }
 }
 

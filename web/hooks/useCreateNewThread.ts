@@ -13,9 +13,8 @@ import { atom, useAtomValue, useSetAtom } from 'jotai'
 
 import { fileUploadAtom } from '@/containers/Providers/Jotai'
 
-import { generateThreadId } from '@/utils/thread'
-
 import { useActiveModel } from './useActiveModel'
+import useCortex from './useCortex'
 import useRecommendedModel from './useRecommendedModel'
 
 import useSetActiveThread from './useSetActiveThread'
@@ -50,6 +49,7 @@ export const useCreateNewThread = () => {
 
   const { recommendedModel, downloadedModels } = useRecommendedModel()
   const { stopInference } = useActiveModel()
+  const { createThread } = useCortex()
 
   const requestCreateNewThread = async (
     assistant: Assistant,
@@ -69,12 +69,12 @@ export const useCreateNewThread = () => {
     }
 
     const overriddenSettings =
-      defaultModel?.settings.ctx_len && defaultModel.settings.ctx_len > 2048
+      defaultModel?.settings?.ctx_len && defaultModel.settings.ctx_len > 2048
         ? { ctx_len: 2048 }
         : {}
 
     const overriddenParameters =
-      defaultModel?.parameters.max_tokens && defaultModel.parameters.max_tokens
+      defaultModel?.parameters?.max_tokens && defaultModel.parameters.max_tokens
         ? { max_tokens: 2048 }
         : {}
 
@@ -93,9 +93,9 @@ export const useCreateNewThread = () => {
       instructions: assistant.instructions,
     }
 
-    const threadId = generateThreadId(assistant.id)
+    const createdThread = await createThread([assistantInfo])
     const thread: Thread = {
-      id: threadId,
+      id: createdThread.id,
       object: 'thread',
       title: 'New Thread',
       assistants: [assistantInfo],
@@ -104,7 +104,6 @@ export const useCreateNewThread = () => {
     }
 
     // add the new thread on top of the thread list to the state
-    //TODO: Why do we have thread list then thread states? Should combine them
     createNewThread(thread)
 
     setSelectedModel(defaultModel)

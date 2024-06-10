@@ -6,7 +6,7 @@ import { useSetAtom } from 'jotai'
 
 import useCortex from './useCortex'
 
-import { setConvoMessagesAtom } from '@/helpers/atoms/ChatMessage.atom'
+import { setThreadMessagesAtom } from '@/helpers/atoms/ChatMessage.atom'
 import {
   ModelParams,
   setActiveThreadIdAtom,
@@ -15,7 +15,7 @@ import {
 
 export default function useSetActiveThread() {
   const setActiveThreadId = useSetAtom(setActiveThreadIdAtom)
-  const setThreadMessage = useSetAtom(setConvoMessagesAtom)
+  const setThreadMessage = useSetAtom(setThreadMessagesAtom)
   const setThreadModelParams = useSetAtom(setThreadModelParamsAtom)
   const { fetchMessages } = useCortex()
 
