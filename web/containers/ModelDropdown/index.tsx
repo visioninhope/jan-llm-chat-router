@@ -12,7 +12,8 @@ import ModelLabel from '@/containers/ModelLabel'
 
 import SetupRemoteModel from '@/containers/SetupRemoteModel'
 
-import useDownloadModel from '@/hooks/useDownloadModel'
+import useCortex from '@/hooks/useCortex'
+
 import useRecommendedModel from '@/hooks/useRecommendedModel'
 
 import useUpdateModelParameters from '@/hooks/useUpdateModelParameters'
@@ -24,7 +25,6 @@ import { extensionManager } from '@/extension'
 import { inActiveEngineProviderAtom } from '@/helpers/atoms/Extension.atom'
 import {
   configuredModelsAtom,
-  getDownloadingModelAtom,
   selectedModelAtom,
 } from '@/helpers/atoms/Model.atom'
 import {
@@ -51,13 +51,12 @@ const ModelDropdown = ({
   chatInputMode,
   strictedThread = true,
 }: Props) => {
-  const { downloadModel } = useDownloadModel()
+  const { downloadModel } = useCortex()
   const [searchFilter, setSearchFilter] = useState('all')
   const [filterOptionsOpen, setFilterOptionsOpen] = useState(false)
   const [searchText, setSearchText] = useState('')
   const [open, setOpen] = useState(false)
   const activeThread = useAtomValue(activeThreadAtom)
-  const downloadingModels = useAtomValue(getDownloadingModelAtom)
   const [toggle, setToggle] = useState<HTMLDivElement | null>(null)
   const [selectedModel, setSelectedModel] = useAtom(selectedModelAtom)
   const { recommendedModel, downloadedModels } = useRecommendedModel()
@@ -327,9 +326,10 @@ const ModelDropdown = ({
                       {searchText.length === 0 ? (
                         <ul className="pb-2">
                           {featuredModel.map((model) => {
-                            const isDownloading = downloadingModels.some(
-                              (md) => md.id === model.id
-                            )
+                            const isDownloading = false // TODO: NamH
+                            //   downloadingModels.some(
+                            //   (md) => md.id === model.id
+                            // )
                             return (
                               <li
                                 key={model.id}
@@ -355,7 +355,7 @@ const ModelDropdown = ({
                                     <DownloadCloudIcon
                                       size={18}
                                       className="cursor-pointer text-[hsla(var(--app-link))]"
-                                      onClick={() => downloadModel(model)}
+                                      onClick={() => downloadModel(model.id)}
                                     />
                                   )}
                                 </div>
@@ -373,9 +373,10 @@ const ModelDropdown = ({
                                 .includes(searchText.toLowerCase().trim())
                             )
                             .map((model) => {
-                              const isDownloading = downloadingModels.some(
-                                (md) => md.id === model.id
-                              )
+                              const isDownloading = false // TODO: NamH
+                              //     downloadingModels.some(
+                              //   (md) => md.id === model.id
+                              // )
                               return (
                                 <li
                                   key={model.id}

@@ -5,14 +5,13 @@ import React from 'react'
 import { DownloadEvent, events, DownloadState, ModelEvent } from '@janhq/core'
 import { useSetAtom } from 'jotai'
 
-import { setDownloadStateAtom } from '@/hooks/useDownloadState'
-
 import { formatExtensionsName } from '@/utils/converter'
 
 import { toaster } from '../Toast'
 
 import AppUpdateListener from './AppUpdateListener'
 import ClipboardListener from './ClipboardListener'
+import DownloadEventListener from './DownloadEventListener'
 import EventHandler from './EventHandler'
 
 import ModelImportListener from './ModelImportListener'
@@ -25,7 +24,6 @@ import {
 } from '@/helpers/atoms/Extension.atom'
 
 const EventListenerWrapper = ({ children }: PropsWithChildren) => {
-  const setDownloadState = useSetAtom(setDownloadStateAtom)
   const setInstallingExtension = useSetAtom(setInstallingExtensionAtom)
   const removeInstallingExtension = useSetAtom(removeInstallingExtensionAtom)
 
@@ -39,11 +37,9 @@ const EventListenerWrapper = ({ children }: PropsWithChildren) => {
           localPath: state.localPath,
         }
         setInstallingExtension(state.extensionId!, installingExtensionState)
-      } else {
-        setDownloadState(state)
       }
     },
-    [setDownloadState, setInstallingExtension]
+    [setInstallingExtension]
   )
 
   const onFileDownloadError = useCallback(
@@ -51,23 +47,15 @@ const EventListenerWrapper = ({ children }: PropsWithChildren) => {
       console.debug('onFileDownloadError', state)
       if (state.downloadType === 'extension') {
         removeInstallingExtension(state.extensionId!)
-      } else {
-        setDownloadState(state)
       }
     },
-    [setDownloadState, removeInstallingExtension]
+    [removeInstallingExtension]
   )
 
-  const onFileDownloadSuccess = useCallback(
-    (state: DownloadState) => {
-      console.debug('onFileDownloadSuccess', state)
-      if (state.downloadType !== 'extension') {
-        setDownloadState(state)
-      }
-      events.emit(ModelEvent.OnModelsUpdate, {})
-    },
-    [setDownloadState]
-  )
+  const onFileDownloadSuccess = useCallback((state: DownloadState) => {
+    console.debug('onFileDownloadSuccess', state)
+    events.emit(ModelEvent.OnModelsUpdate, {})
+  }, [])
 
   const onFileUnzipSuccess = useCallback(
     (state: DownloadState) => {
@@ -105,6 +93,7 @@ const EventListenerWrapper = ({ children }: PropsWithChildren) => {
 
   return (
     <AppUpdateListener>
+      <DownloadEventListener />
       <ClipboardListener>
         <ModelImportListener>
           <QuickAskListener>

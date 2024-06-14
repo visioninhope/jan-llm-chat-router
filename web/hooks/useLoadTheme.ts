@@ -33,7 +33,7 @@ export const useLoadTheme = async () => {
         setTheme('dark')
         localStorage.setItem('nativeTheme', 'dark')
       } else {
-        window?.electronAPI.setNativeThemeLight()
+        window?.electronAPI?.setNativeThemeLight()
         setTheme('light')
         localStorage.setItem('nativeTheme', 'light')
       }

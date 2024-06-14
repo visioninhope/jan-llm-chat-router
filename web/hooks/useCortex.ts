@@ -1,15 +1,25 @@
 import '@janhq/cortex-node/shims/web'
 import { useCallback } from 'react'
 
-import { Assistant, Model, Thread, ThreadMessage } from '@janhq/core'
+import {
+  Assistant,
+  Model,
+  Thread,
+  ThreadMessage,
+  ThreadAssistantInfo,
+} from '@janhq/core'
+
 import { Cortex } from '@janhq/cortex-node'
 
 import { ChatCompletionMessage } from '@janhq/cortex-node/dist/resources'
+import {
+  AssistantCreateParams,
+  AssistantUpdateParams,
+} from '@janhq/cortex-node/dist/resources/beta/assistants'
 import { MessageCreateParams } from '@janhq/cortex-node/dist/resources/beta/threads/messages'
 import { useAtomValue } from 'jotai'
 
 import { hostAtom } from '@/helpers/atoms/AppConfig.atom'
-import { ThreadAssistantInfo } from '@janhq/core/.'
 
 const useCortex = () => {
   const host = useAtomValue(hostAtom)
@@ -131,11 +141,37 @@ const useCortex = () => {
   const createThread = useCallback(
     async (assistantInfo: ThreadAssistantInfo[]) => {
       return cortex.beta.threads.create({
-        // @ts-expect-error testing
         assistants: assistantInfo,
       })
     },
     [cortex.beta.threads]
+  )
+
+  const downloadModel = useCallback(
+    async (modelId: string) => {
+      return cortex.models.download(modelId)
+    },
+    [cortex.models]
+  )
+
+  const abortDownload = useCallback(
+    async (downloadId: string) => {
+      return cortex.models.abortDownload(downloadId)
+    },
+    [cortex.models]
+  )
+
+  const createAssistant = useCallback(
+    async (createParams: AssistantCreateParams) => {
+      return cortex.beta.assistants.create(createParams)
+    },
+    [cortex.beta.assistants]
+  )
+
+  const updateAssistant = useCallback(
+    async (assistantId: string, updateParams: AssistantUpdateParams) =>
+      cortex.beta.assistants.update(assistantId, updateParams),
+    [cortex.beta.assistants]
   )
 
   return {
@@ -153,6 +189,10 @@ const useCortex = () => {
     createMessage,
     updateMessage,
     createThread,
+    downloadModel,
+    abortDownload,
+    createAssistant,
+    updateAssistant,
   }
 }
 
