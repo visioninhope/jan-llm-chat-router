@@ -14,8 +14,9 @@ import { downloadedModelsAtom } from '@/helpers/atoms/Model.atom'
 const EmptyThread = () => {
   const downloadedModels = useAtomValue(downloadedModelsAtom)
   const setMainViewState = useSetAtom(mainViewStateAtom)
+
   const showOnboardingStep =
-    downloadedModels.filter((e) => e.engine === InferenceEngine.nitro)
+    downloadedModels.filter((e) => e.engine.startsWith(InferenceEngine.cortex))
       .length === 0
 
   return (

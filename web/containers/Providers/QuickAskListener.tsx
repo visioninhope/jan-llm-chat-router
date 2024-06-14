@@ -1,5 +1,3 @@
-import { Fragment, ReactNode } from 'react'
-
 import { useSetAtom } from 'jotai'
 
 import { useDebouncedCallback } from 'use-debounce'
@@ -10,11 +8,7 @@ import useSendChatMessage from '@/hooks/useSendChatMessage'
 
 import { mainViewStateAtom } from '@/helpers/atoms/App.atom'
 
-type Props = {
-  children: ReactNode
-}
-
-const QuickAskListener: React.FC<Props> = ({ children }) => {
+const QuickAskListener: React.FC = () => {
   const { sendChatMessage } = useSendChatMessage()
   const setMainState = useSetAtom(mainViewStateAtom)
 
@@ -27,7 +21,7 @@ const QuickAskListener: React.FC<Props> = ({ children }) => {
     debounced(input)
   })
 
-  return <Fragment>{children}</Fragment>
+  return null
 }
 
 export default QuickAskListener

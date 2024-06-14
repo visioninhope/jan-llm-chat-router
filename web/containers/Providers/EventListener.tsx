@@ -1,4 +1,4 @@
-import { PropsWithChildren, useCallback, useEffect } from 'react'
+import { Fragment, useCallback, useEffect } from 'react'
 
 import React from 'react'
 
@@ -11,9 +11,11 @@ import { toaster } from '../Toast'
 
 import AppUpdateListener from './AppUpdateListener'
 import ClipboardListener from './ClipboardListener'
+import DeepLinkListener from './DeepLinkListener'
 import DownloadEventListener from './DownloadEventListener'
 import EventHandler from './EventHandler'
 
+import KeyListener from './KeyListener'
 import ModelImportListener from './ModelImportListener'
 import QuickAskListener from './QuickAskListener'
 
@@ -23,7 +25,7 @@ import {
   setInstallingExtensionAtom,
 } from '@/helpers/atoms/Extension.atom'
 
-const EventListenerWrapper = ({ children }: PropsWithChildren) => {
+const EventListenerWrapper: React.FC = () => {
   const setInstallingExtension = useSetAtom(setInstallingExtensionAtom)
   const removeInstallingExtension = useSetAtom(removeInstallingExtensionAtom)
 
@@ -92,16 +94,16 @@ const EventListenerWrapper = ({ children }: PropsWithChildren) => {
   ])
 
   return (
-    <AppUpdateListener>
+    <Fragment>
+      <AppUpdateListener />
+      <KeyListener />
       <DownloadEventListener />
-      <ClipboardListener>
-        <ModelImportListener>
-          <QuickAskListener>
-            <EventHandler>{children}</EventHandler>
-          </QuickAskListener>
-        </ModelImportListener>
-      </ClipboardListener>
-    </AppUpdateListener>
+      <ClipboardListener />
+      <DeepLinkListener />
+      <QuickAskListener />
+      <ModelImportListener />
+      <EventHandler />
+    </Fragment>
   )
 }
 

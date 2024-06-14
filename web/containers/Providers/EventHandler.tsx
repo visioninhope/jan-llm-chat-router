@@ -1,4 +1,4 @@
-import { Fragment, ReactNode, useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 import {
   ChatCompletionMessage,
@@ -39,7 +39,7 @@ import {
 const maxWordForThreadTitle = 10
 const defaultThreadTitle = 'New Thread'
 
-export default function EventHandler({ children }: { children: ReactNode }) {
+const EventHandler: React.FC = () => {
   const messages = useAtomValue(getCurrentChatMessagesAtom)
   const addNewMessage = useSetAtom(addNewMessageAtom)
   const updateMessage = useSetAtom(updateMessageAtom)
@@ -291,5 +291,7 @@ export default function EventHandler({ children }: { children: ReactNode }) {
     }
   }, [onNewMessageResponse, onMessageResponseUpdate, onModelStopped])
 
-  return <Fragment>{children}</Fragment>
+  return null
 }
+
+export default EventHandler

@@ -18,11 +18,13 @@ const DownloadEventListener: React.FC = () => {
     if (isRegistered.current) return
     await fetchEventSource(`${host}events/download`, {
       onmessage(ev) {
+        if (!ev.data) return
+        if (typeof ev.data === 'string') return
         try {
           const downloadEvent = JSON.parse(ev.data) as DownloadState2[]
           setDownloadStateList(downloadEvent)
         } catch (err) {
-          console.log(err)
+          console.error(err)
         }
       },
       signal: abortController.current.signal,

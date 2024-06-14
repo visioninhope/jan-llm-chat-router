@@ -1,6 +1,5 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 
-import { AssistantEvent, events } from '@janhq/core'
 import { useSetAtom } from 'jotai'
 
 import useCortex from './useCortex'
@@ -11,19 +10,16 @@ const useAssistants = () => {
   const setAssistants = useSetAtom(assistantsAtom)
   const { fetchAssistants } = useCortex()
 
-  const getData = useCallback(async () => {
+  const getAssistantList = useCallback(async () => {
     const assistants = await fetchAssistants()
     setAssistants(assistants)
-  }, [setAssistants, fetchAssistants])
+  }, [fetchAssistants, setAssistants])
 
-  useEffect(() => {
-    getData()
+  const createAssistant = useCallback(async (assistant: object) => {
+    throw new Error('not implemented')
+  }, [])
 
-    events.on(AssistantEvent.OnAssistantsUpdate, () => getData())
-    return () => {
-      events.off(AssistantEvent.OnAssistantsUpdate, () => getData())
-    }
-  }, [getData])
+  return { getAssistantList, createAssistant }
 }
 
 export default useAssistants

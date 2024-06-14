@@ -1,6 +1,12 @@
 'use client'
 
-import { PropsWithChildren, useCallback, useEffect, useState } from 'react'
+import {
+  Fragment,
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react'
 
 import { Toaster } from 'react-hot-toast'
 
@@ -20,8 +26,6 @@ import Umami from '@/utils/umami'
 
 import DataLoader from './DataLoader'
 
-import DeepLinkListener from './DeepLinkListener'
-import KeyListener from './KeyListener'
 import Responsive from './Responsive'
 
 import { extensionManager } from '@/extension'
@@ -75,16 +79,12 @@ const Providers = ({ children }: PropsWithChildren) => {
         <Umami />
         {settingUp && <Loader description="Preparing Update..." />}
         {setupCore && activated && (
-          <KeyListener>
-            <EventListenerWrapper>
-              <DataLoader>
-                <DeepLinkListener>
-                  <Responsive>{children}</Responsive>
-                </DeepLinkListener>
-              </DataLoader>
-            </EventListenerWrapper>
+          <Fragment>
+            <DataLoader />
+            <EventListenerWrapper />
+            <Responsive>{children}</Responsive>
             <Toaster />
-          </KeyListener>
+          </Fragment>
         )}
       </JotaiWrapper>
     </ThemeWrapper>

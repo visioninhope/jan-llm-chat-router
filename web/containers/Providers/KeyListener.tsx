@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, ReactNode, useEffect } from 'react'
+import { useEffect } from 'react'
 
 import { useAtomValue, useSetAtom } from 'jotai'
 
@@ -11,11 +11,7 @@ import { useCreateNewThread } from '@/hooks/useCreateNewThread'
 import { mainViewStateAtom, showLeftPanelAtom } from '@/helpers/atoms/App.atom'
 import { assistantsAtom } from '@/helpers/atoms/Assistant.atom'
 
-type Props = {
-  children: ReactNode
-}
-
-export default function KeyListener({ children }: Props) {
+const KeyListener: React.FC = () => {
   const setShowLeftPanel = useSetAtom(showLeftPanelAtom)
   const setMainViewState = useSetAtom(mainViewStateAtom)
   const { requestCreateNewThread } = useCreateNewThread()
@@ -45,5 +41,7 @@ export default function KeyListener({ children }: Props) {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [assistants, requestCreateNewThread, setMainViewState, setShowLeftPanel])
 
-  return <Fragment>{children}</Fragment>
+  return null
 }
+
+export default KeyListener

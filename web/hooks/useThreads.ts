@@ -1,6 +1,4 @@
-import { useCallback, useEffect } from 'react'
-
-import { Thread } from '@janhq/core'
+import { useCallback } from 'react'
 
 import { useSetAtom } from 'jotai'
 
@@ -17,26 +15,24 @@ const useThreads = () => {
   const setThreadModelRuntimeParams = useSetAtom(threadModelParamsAtom)
   const { fetchThreads } = useCortex()
 
-  useEffect(() => {
-    const getThreads = async () => {
-      const threads = await fetchThreads()
-      const threadModelParams: Record<string, ModelParams> = {}
+  const getThreadList = useCallback(async () => {
+    const threads = await fetchThreads()
+    const threadModelParams: Record<string, ModelParams> = {}
 
-      threads.forEach((thread) => {
-        const modelParams = thread.assistants?.[0]?.model?.parameters
-        const engineParams = thread.assistants?.[0]?.model?.settings
-        threadModelParams[thread.id] = {
-          ...modelParams,
-          ...engineParams,
-        }
-      })
+    threads.forEach((thread) => {
+      const modelParams = thread.assistants?.[0]?.model?.parameters
+      const engineParams = thread.assistants?.[0]?.model?.settings
+      threadModelParams[thread.id] = {
+        ...modelParams,
+        ...engineParams,
+      }
+    })
 
-      setThreads(threads)
-      setThreadModelRuntimeParams(threadModelParams)
-    }
+    setThreads(threads)
+    setThreadModelRuntimeParams(threadModelParams)
+  }, [setThreads, setThreadModelRuntimeParams, fetchThreads])
 
-    getThreads()
-  }, [setThreadModelRuntimeParams, setThreads, fetchThreads])
+  return { getThreadList }
 }
 
 export default useThreads

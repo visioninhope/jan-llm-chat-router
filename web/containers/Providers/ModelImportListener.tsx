@@ -1,4 +1,4 @@
-import { Fragment, PropsWithChildren, useCallback, useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 
 import {
   ImportingModel,
@@ -17,7 +17,7 @@ import {
   updateImportingModelProgressAtom,
 } from '@/helpers/atoms/Model.atom'
 
-const ModelImportListener = ({ children }: PropsWithChildren) => {
+const ModelImportListener: React.FC = () => {
   const updateImportingModelProgress = useSetAtom(
     updateImportingModelProgressAtom
   )
@@ -103,7 +103,7 @@ const ModelImportListener = ({ children }: PropsWithChildren) => {
     onImportModelFailed,
   ])
 
-  return <Fragment>{children}</Fragment>
+  return null
 }
 
 export default ModelImportListener

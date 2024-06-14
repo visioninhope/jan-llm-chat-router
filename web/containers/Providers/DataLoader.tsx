@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, ReactNode, useEffect } from 'react'
+import { useEffect } from 'react'
 
 import { AppConfiguration, getUserHomePath, joinPath } from '@janhq/core'
 import { useSetAtom } from 'jotai'
@@ -20,21 +20,23 @@ import {
 } from '@/helpers/atoms/AppConfig.atom'
 import { janSettingScreenAtom } from '@/helpers/atoms/Setting.atom'
 
-type Props = {
-  children: ReactNode
-}
-
-const DataLoader: React.FC<Props> = ({ children }) => {
+const DataLoader: React.FC = () => {
   const setJanDataFolderPath = useSetAtom(janDataFolderPathAtom)
   const setQuickAskEnabled = useSetAtom(quickAskEnabledAtom)
   const setJanDefaultDataFolder = useSetAtom(defaultJanDataFolderAtom)
   const setJanSettingScreen = useSetAtom(janSettingScreenAtom)
 
+  const { getAssistantList } = useAssistants()
+  const { getThreadList } = useThreads()
+
   useModels()
-  useThreads()
-  useAssistants()
   useGetSystemResources()
   useLoadTheme()
+
+  useEffect(() => {
+    getAssistantList()
+    getThreadList()
+  }, [getThreadList, getAssistantList])
 
   useEffect(() => {
     window.core?.api
@@ -63,8 +65,7 @@ const DataLoader: React.FC<Props> = ({ children }) => {
   }, [setJanSettingScreen])
 
   console.debug('Load Data...')
-
-  return <Fragment>{children}</Fragment>
+  return null
 }
 
 export default DataLoader

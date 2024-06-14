@@ -60,12 +60,12 @@ export const useCreateNewThread = () => {
     stopInference()
 
     const defaultModel = model ?? recommendedModel ?? downloadedModels[0]
-
+    console.log(defaultModel)
     // modify assistant tools when experimental on, retieval toggle enabled in default
     const assistantTools: AssistantTool = {
       type: 'retrieval',
       enabled: true,
-      settings: assistant.tools && assistant.tools[0].settings,
+      settings: {}, // TODO: NamH assistant.tools && assistant.tools[0].settings,
     }
 
     const overriddenSettings =
