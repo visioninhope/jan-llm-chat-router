@@ -17,10 +17,6 @@ import JotaiWrapper from '@/containers/Providers/Jotai'
 import ThemeWrapper from '@/containers/Providers/Theme'
 
 import { setupCoreServices } from '@/services/coreService'
-import {
-  isCoreExtensionInstalled,
-  setupBaseExtensions,
-} from '@/services/extensionService'
 
 import Umami from '@/utils/umami'
 
@@ -40,12 +36,6 @@ const Providers = ({ children }: PropsWithChildren) => {
     await extensionManager.registerActive()
 
     setTimeout(async () => {
-      if (!isCoreExtensionInstalled()) {
-        setSettingUp(true)
-        await setupBaseExtensions()
-        return
-      }
-
       extensionManager.load()
       setSettingUp(false)
       setActivated(true)

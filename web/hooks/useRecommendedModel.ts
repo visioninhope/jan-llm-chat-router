@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { Model, InferenceEngine } from '@janhq/core'
+import { Model } from '@janhq/core'
 
 import { atom, useAtomValue } from 'jotai'
 
@@ -30,13 +30,9 @@ export default function useRecommendedModel() {
   const downloadedModels = useAtomValue(downloadedModelsAtom)
 
   const getAndSortDownloadedModels = useCallback(async (): Promise<Model[]> => {
-    const models = downloadedModels.sort((a, b) =>
-      a.engine !== InferenceEngine.nitro && b.engine === InferenceEngine.nitro
-        ? 1
-        : -1
-    )
-    setSortedModels(models)
-    return models
+    // TODO: NamH remove this function
+    setSortedModels(downloadedModels)
+    return downloadedModels
   }, [downloadedModels])
 
   const getRecommendedModel = useCallback(async (): Promise<
@@ -44,7 +40,7 @@ export default function useRecommendedModel() {
   > => {
     const models = await getAndSortDownloadedModels()
     if (!activeThread) return
-    const modelId = activeThread.assistants[0]?.model.id
+    const modelId = activeThread.assistants[0]?.model
     const model = models.find((model) => model.id === modelId)
 
     if (model) {

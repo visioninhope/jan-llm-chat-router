@@ -28,15 +28,16 @@ const DataLoader: React.FC = () => {
 
   const { getAssistantList } = useAssistants()
   const { getThreadList } = useThreads()
+  const { getModels } = useModels()
 
-  useModels()
   useGetSystemResources()
   useLoadTheme()
 
   useEffect(() => {
     getAssistantList()
     getThreadList()
-  }, [getThreadList, getAssistantList])
+    getModels()
+  }, [getThreadList, getAssistantList, getModels])
 
   useEffect(() => {
     window.core?.api

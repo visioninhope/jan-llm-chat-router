@@ -17,8 +17,9 @@ const useThreads = () => {
 
   const getThreadList = useCallback(async () => {
     const threads = await fetchThreads()
-    const threadModelParams: Record<string, ModelParams> = {}
 
+    // TODO: namh since we store setting to global model so we don't need so save to thread here?
+    const threadModelParams: Record<string, ModelParams> = {}
     threads.forEach((thread) => {
       const modelParams = thread.assistants?.[0]?.model?.parameters
       const engineParams = thread.assistants?.[0]?.model?.settings
@@ -31,6 +32,12 @@ const useThreads = () => {
     setThreads(threads)
     setThreadModelRuntimeParams(threadModelParams)
   }, [setThreads, setThreadModelRuntimeParams, fetchThreads])
+
+  const createNewThread = useCallback(async (modelId: string) => {
+    // create assistant
+    // const assistant = await createAssistant(modelId)
+    // using assistant above to map to thread
+  }, [])
 
   return { getThreadList }
 }

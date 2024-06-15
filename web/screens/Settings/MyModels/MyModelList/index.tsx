@@ -44,13 +44,7 @@ const MyModelList = ({ model }: Props) => {
     }
   }
 
-  const engineHasLogo = [
-    InferenceEngine.anthropic,
-    InferenceEngine.cohere,
-    InferenceEngine.martian,
-    InferenceEngine.mistral,
-    InferenceEngine.openai,
-  ]
+  const engineHasLogo = ['anthropic', 'cohere', 'martian', 'mistral', 'openai']
 
   return (
     <div className="border border-b-0 border-[hsla(var(--app-border))] bg-[hsla(var(--tertiary-bg))] p-4 first:rounded-t-lg last:rounded-b-lg last:border-b">

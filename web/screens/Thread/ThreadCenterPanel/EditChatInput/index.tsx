@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import {
-  ConversationalExtension,
-  ExtensionTypeEnum,
-  MessageStatus,
-  ThreadMessage,
-} from '@janhq/core'
+import { MessageStatus, ThreadMessage } from '@janhq/core'
 
 import { TextArea, Button, Modal, ModalClose } from '@janhq/joi'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
@@ -18,12 +13,9 @@ import { useActiveModel } from '@/hooks/useActiveModel'
 
 import useSendChatMessage from '@/hooks/useSendChatMessage'
 
-import { extensionManager } from '@/extension'
-
 import {
   editMessageAtom,
   getCurrentChatMessagesAtom,
-  setConvoMessagesAtom,
 } from '@/helpers/atoms/ChatMessage.atom'
 import {
   activeThreadAtom,
@@ -42,7 +34,7 @@ const EditChatInput: React.FC<Props> = ({ message }) => {
 
   const [editPrompt, setEditPrompt] = useAtom(editPromptAtom)
   const { sendChatMessage } = useSendChatMessage()
-  const setMessages = useSetAtom(setConvoMessagesAtom)
+  // const setMessages = useSetAtom(setConvoMessagesAtom)
   const activeThreadId = useAtomValue(getActiveThreadIdAtom)
 
   const [isWaitingToSend, setIsWaitingToSend] = useAtom(waitingToSendMessage)
@@ -92,17 +84,17 @@ const EditChatInput: React.FC<Props> = ({ message }) => {
     const messageIdx = messages.findIndex((msg) => msg.id === message.id)
     const newMessages = messages.slice(0, messageIdx)
     if (activeThread) {
-      setMessages(activeThread.id, newMessages)
-      await extensionManager
-        .get<ConversationalExtension>(ExtensionTypeEnum.Conversational)
-        ?.writeMessages(
-          activeThread.id,
-          // Remove all of the messages below this
-          newMessages
-        )
-        .then(() => {
-          sendChatMessage(editPrompt)
-        })
+      // setMessages(activeThread.id, newMessages)
+      // await extensionManager
+      //   .get<ConversationalExtension>(ExtensionTypeEnum.Conversational)
+      //   ?.writeMessages(
+      //     activeThread.id,
+      //     // Remove all of the messages below this
+      //     newMessages
+      //   )
+      //   .then(() => {
+      //     sendChatMessage(editPrompt)
+      //   })
     }
   }
 

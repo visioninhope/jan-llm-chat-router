@@ -62,14 +62,15 @@ export abstract class AIEngine extends BaseExtension {
     try {
       const modelJson = await fs.readFileSync(await joinPath([modelPath, 'model.json']), 'utf-8')
       const currentModel: Model = JSON.parse(modelJson)
-      if (currentModel.version !== model.version) {
-        await fs.writeFileSync(
-          await joinPath([modelPath, 'model.json']),
-          JSON.stringify(model, null, 2)
-        )
-
-        events.emit(ModelEvent.OnModelsUpdate, {})
-      }
+      // TODO: remove this since front end won't migrating model
+      // if (currentModel.version !== model.version) {
+      //   await fs.writeFileSync(
+      //     await joinPath([modelPath, 'model.json']),
+      //     JSON.stringify(model, null, 2)
+      //   )
+      //
+      //   events.emit(ModelEvent.OnModelsUpdate, {})
+      // }
     } catch (error) {
       console.warn('Error while try to migrating model', error)
     }

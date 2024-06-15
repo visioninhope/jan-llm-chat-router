@@ -1,12 +1,7 @@
 import { Tooltip, useMediaQuery } from '@janhq/joi'
 import { motion as m } from 'framer-motion'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
-import {
-  MessageCircleIcon,
-  SettingsIcon,
-  LayoutGridIcon,
-  SquareCodeIcon,
-} from 'lucide-react'
+import { MessageCircleIcon, SettingsIcon, LayoutGridIcon } from 'lucide-react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -14,15 +9,32 @@ import { MainViewState } from '@/constants/screens'
 
 import { mainViewStateAtom, showLeftPanelAtom } from '@/helpers/atoms/App.atom'
 import { editMessageAtom } from '@/helpers/atoms/ChatMessage.atom'
-import { serverEnabledAtom } from '@/helpers/atoms/LocalServer.atom'
+
 import {
   reduceTransparentAtom,
   selectedSettingAtom,
 } from '@/helpers/atoms/Setting.atom'
 
+const RibbonNavMenus = [
+  {
+    name: 'Thread',
+    icon: <MessageCircleIcon size={18} className="flex-shrink-0" />,
+    state: MainViewState.Thread,
+  },
+  {
+    name: 'Hub',
+    icon: <LayoutGridIcon size={18} className="flex-shrink-0" />,
+    state: MainViewState.Hub,
+  },
+  {
+    name: 'Settings',
+    icon: <SettingsIcon size={18} className="flex-shrink-0" />,
+    state: MainViewState.Settings,
+  },
+]
+
 export default function RibbonPanel() {
   const [mainViewState, setMainViewState] = useAtom(mainViewStateAtom)
-  const [serverEnabled] = useAtom(serverEnabledAtom)
   const setEditMessage = useSetAtom(editMessageAtom)
   const showLeftPanel = useAtomValue(showLeftPanelAtom)
   const matches = useMediaQuery('(max-width: 880px)')
@@ -31,42 +43,10 @@ export default function RibbonPanel() {
 
   const onMenuClick = (state: MainViewState) => {
     if (mainViewState === state) return
-    if (serverEnabled && state === MainViewState.Thread) return
     if (state === MainViewState.Settings) setSelectedSetting('My Models')
     setMainViewState(state)
     setEditMessage('')
   }
-
-  const RibbonNavMenus = [
-    {
-      name: 'Thread',
-      icon: (
-        <MessageCircleIcon
-          size={18}
-          className={twMerge(
-            'flex-shrink-0',
-            serverEnabled && 'text-[hsla(var(--disabled-fg))]'
-          )}
-        />
-      ),
-      state: MainViewState.Thread,
-    },
-    {
-      name: 'Hub',
-      icon: <LayoutGridIcon size={18} className="flex-shrink-0" />,
-      state: MainViewState.Hub,
-    },
-    {
-      name: 'Local API Server',
-      icon: <SquareCodeIcon size={18} className="flex-shrink-0" />,
-      state: MainViewState.LocalServer,
-    },
-    {
-      name: 'Settings',
-      icon: <SettingsIcon size={18} className="flex-shrink-0" />,
-      state: MainViewState.Settings,
-    },
-  ]
 
   return (
     <div
@@ -114,11 +94,7 @@ export default function RibbonPanel() {
                   )}
                 </div>
               }
-              content={
-                serverEnabled && menu.state === MainViewState.Thread
-                  ? 'Threads are disabled while the server is running'
-                  : menu.name
-              }
+              content={menu.name}
             />
           </div>
         )

@@ -3,11 +3,9 @@ import { useEffect, useRef } from 'react'
 import {
   ChatCompletionRole,
   MessageRequestType,
-  ExtensionTypeEnum,
   Thread,
   ThreadMessage,
   Model,
-  ConversationalExtension,
   EngineManager,
   ToolManager,
   MessageStatus,
@@ -18,7 +16,6 @@ import {
 } from '@janhq/core'
 
 import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai'
-import { v4 as uuidv4 } from 'uuid'
 
 import {
   currentPromptAtom,
@@ -35,8 +32,6 @@ import { ThreadMessageBuilder } from '@/utils/threadMessageBuilder'
 import { loadModelErrorAtom, useActiveModel } from './useActiveModel'
 
 import useCortex from './useCortex'
-
-import { extensionManager } from '@/extension/ExtensionManager'
 
 import {
   addNewMessageAtom,
@@ -130,12 +125,12 @@ export default function useSendChatMessage() {
       // Delete last response before regenerating
       deleteMessage(currentMessage.id ?? '')
       if (activeThreadRef.current) {
-        await extensionManager
-          .get<ConversationalExtension>(ExtensionTypeEnum.Conversational)
-          ?.writeMessages(
-            activeThreadRef.current.id,
-            currentMessages.filter((msg) => msg.id !== currentMessage.id)
-          )
+        // await extensionManager
+        //   .get<ConversationalExtension>(ExtensionTypeEnum.Conversational)
+        //   ?.writeMessages(
+        //     activeThreadRef.current.id,
+        //     currentMessages.filter((msg) => msg.id !== currentMessage.id)
+        //   )
       }
     }
     // Process message request with Assistants tools

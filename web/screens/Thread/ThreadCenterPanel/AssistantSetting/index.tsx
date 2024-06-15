@@ -4,7 +4,6 @@ import { SettingComponentProps } from '@janhq/core'
 import { useAtomValue, useSetAtom } from 'jotai'
 
 import { useActiveModel } from '@/hooks/useActiveModel'
-import { useCreateNewThread } from '@/hooks/useCreateNewThread'
 
 import SettingComponentBuilder from '../../../../containers/ModelSetting/SettingComponent'
 
@@ -19,7 +18,6 @@ type Props = {
 
 const AssistantSetting: React.FC<Props> = ({ componentData }) => {
   const activeThread = useAtomValue(activeThreadAtom)
-  const { updateThreadMetadata } = useCreateNewThread()
   const { stopModel } = useActiveModel()
   const setEngineParamsUpdate = useSetAtom(engineParamsUpdateAtom)
 
@@ -56,33 +54,8 @@ const AssistantSetting: React.FC<Props> = ({ componentData }) => {
           activeThread.assistants[0].tools[0].settings.chunk_size = value
         }
       }
-      updateThreadMetadata({
-        ...activeThread,
-        assistants: [
-          {
-            ...activeThread.assistants[0],
-            tools: [
-              {
-                type: 'retrieval',
-                enabled: true,
-                settings: {
-                  ...(activeThread.assistants[0].tools &&
-                    activeThread.assistants[0].tools[0]?.settings),
-                  [key]: value,
-                },
-              },
-            ],
-          },
-        ],
-      })
     },
-    [
-      activeThread,
-      componentData,
-      setEngineParamsUpdate,
-      stopModel,
-      updateThreadMetadata,
-    ]
+    [activeThread, componentData, setEngineParamsUpdate, stopModel]
   )
 
   if (!activeThread) return null

@@ -5,8 +5,6 @@ import { useAtom, useAtomValue } from 'jotai'
 
 import { InfoIcon } from 'lucide-react'
 
-import { useCreateNewThread } from '@/hooks/useCreateNewThread'
-
 import useRecommendedModel from '@/hooks/useRecommendedModel'
 
 import AssistantSetting from '@/screens/Thread/ThreadCenterPanel/AssistantSetting'
@@ -21,7 +19,6 @@ const Tools = () => {
   const experimentalFeature = useAtomValue(experimentalFeatureEnabledAtom)
   const activeThread = useAtomValue(activeThreadAtom)
   const [selectedModel, setSelectedModel] = useAtom(selectedModelAtom)
-  const { updateThreadMetadata } = useCreateNewThread()
   const { recommendedModel, downloadedModels } = useRecommendedModel()
 
   const componentDataAssistantSetting = getConfigurationsData(
@@ -44,26 +41,27 @@ const Tools = () => {
   const onRetrievalSwitchUpdate = useCallback(
     (enabled: boolean) => {
       if (!activeThread) return
-      updateThreadMetadata({
-        ...activeThread,
-        assistants: [
-          {
-            ...activeThread.assistants[0],
-            tools: [
-              {
-                type: 'retrieval',
-                enabled: enabled,
-                settings:
-                  (activeThread.assistants[0].tools &&
-                    activeThread.assistants[0].tools[0]?.settings) ??
-                  {},
-              },
-            ],
-          },
-        ],
-      })
+      // TODO: NamH update this
+      // updateThreadMetadata({
+      //   ...activeThread,
+      //   assistants: [
+      //     {
+      //       ...activeThread.assistants[0],
+      //       tools: [
+      //         {
+      //           type: 'retrieval',
+      //           enabled: enabled,
+      //           settings:
+      //             (activeThread.assistants[0].tools &&
+      //               activeThread.assistants[0].tools[0]?.settings) ??
+      //             {},
+      //         },
+      //       ],
+      //     },
+      //   ],
+      // })
     },
-    [activeThread, updateThreadMetadata]
+    [activeThread]
   )
 
   if (!experimentalFeature) return null

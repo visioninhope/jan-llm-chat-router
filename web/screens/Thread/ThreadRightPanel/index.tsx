@@ -45,7 +45,6 @@ const ThreadRightPanel = () => {
   const [activeTabThreadRightPanel, setActiveTabThreadRightPanel] = useAtom(
     activeTabThreadRightPanelAtom
   )
-  const { updateThreadMetadata } = useCreateNewThread()
   const experimentalFeature = useAtomValue(experimentalFeatureEnabledAtom)
 
   const setEngineParamsUpdate = useSetAtom(engineParamsUpdateAtom)
@@ -122,18 +121,20 @@ const ThreadRightPanel = () => {
 
   const onAssistantInstructionChanged = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      if (activeThread)
-        updateThreadMetadata({
-          ...activeThread,
-          assistants: [
-            {
-              ...activeThread.assistants[0],
-              instructions: e.target.value || '',
-            },
-          ],
-        })
+      // TODO: NamH handle this
+      // console.log('')
+      // if (activeThread)
+      //   updateThreadMetadata({
+      //     ...activeThread,
+      //     assistants: [
+      //       {
+      //         ...activeThread.assistants[0],
+      //         instructions: e.target.value || '',
+      //       },
+      //     ],
+      //   })
     },
-    [activeThread, updateThreadMetadata]
+    []
   )
 
   const onValueChanged = useCallback(

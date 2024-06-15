@@ -1,18 +1,11 @@
 import { useCallback } from 'react'
 
-import {
-  ConversationalExtension,
-  ExtensionTypeEnum,
-  InferenceEngine,
-  Thread,
-  ThreadAssistantInfo,
-} from '@janhq/core'
+import { InferenceEngine, Thread } from '@janhq/core'
 
 import { useAtomValue, useSetAtom } from 'jotai'
 
 import { toRuntimeParams, toSettingParams } from '@/utils/modelParam'
 
-import { extensionManager } from '@/extension'
 import { selectedModelAtom } from '@/helpers/atoms/Model.atom'
 import {
   ModelParams,
@@ -62,9 +55,9 @@ export default function useUpdateModelParameters() {
         assistants,
       }
 
-      await extensionManager
-        .get<ConversationalExtension>(ExtensionTypeEnum.Conversational)
-        ?.saveThread(updatedThread)
+      // await extensionManager
+      //   .get<ConversationalExtension>(ExtensionTypeEnum.Conversational)
+      //   ?.saveThread(updatedThread)
     },
     [activeModelParams, selectedModel, setThreadModelParams]
   )

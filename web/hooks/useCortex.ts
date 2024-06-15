@@ -1,13 +1,7 @@
 import '@janhq/cortex-node/shims/web'
 import { useCallback } from 'react'
 
-import {
-  Assistant,
-  Model,
-  Thread,
-  ThreadMessage,
-  ThreadAssistantInfo,
-} from '@janhq/core'
+import { Assistant, Model, ThreadMessage } from '@janhq/core'
 
 import { Cortex } from '@janhq/cortex-node'
 
@@ -17,6 +11,7 @@ import {
   AssistantUpdateParams,
 } from '@janhq/cortex-node/dist/resources/beta/assistants'
 import { MessageCreateParams } from '@janhq/cortex-node/dist/resources/beta/threads/messages'
+import { Thread } from '@janhq/cortex-node/dist/resources/beta/threads/threads'
 import { useAtomValue } from 'jotai'
 
 import { hostAtom } from '@/helpers/atoms/AppConfig.atom'
@@ -138,19 +133,19 @@ const useCortex = () => {
     [cortex.beta.threads]
   )
 
-  const createThread = useCallback(
-    async (assistantInfo: ThreadAssistantInfo[]) => {
-      return cortex.beta.threads.create({
-        assistants: assistantInfo,
-      })
+  const createThread = useCallback(async () => {
+    return cortex.beta.threads.create()
+  }, [cortex.beta.threads])
+
+  const updateModel = useCallback(
+    async (modelId: string, options: Record<string, unknown>) => {
+      return cortex.models.update(modelId, options)
     },
-    [cortex.beta.threads]
+    [cortex.models]
   )
 
   const downloadModel = useCallback(
-    async (modelId: string) => {
-      return cortex.models.download(modelId)
-    },
+    async (modelId: string) => cortex.models.download(modelId),
     [cortex.models]
   )
 
@@ -193,6 +188,7 @@ const useCortex = () => {
     abortDownload,
     createAssistant,
     updateAssistant,
+    updateModel,
   }
 }
 

@@ -38,13 +38,7 @@ type Props = {
   disabled?: boolean
 }
 
-const engineHasLogo = [
-  InferenceEngine.anthropic,
-  InferenceEngine.cohere,
-  InferenceEngine.martian,
-  InferenceEngine.mistral,
-  InferenceEngine.openai,
-]
+const engineHasLogo = ['anthropic', 'cohere', 'martian', 'mistral', 'openai']
 
 const ModelDropdown = ({
   disabled,

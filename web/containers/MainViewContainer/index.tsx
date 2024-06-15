@@ -3,7 +3,6 @@ import { useAtomValue } from 'jotai'
 import { MainViewState } from '@/constants/screens'
 
 import HubScreen from '@/screens/Hub'
-import LocalServerScreen from '@/screens/LocalServer'
 import SettingsScreen from '@/screens/Settings'
 import ThreadScreen from '@/screens/Thread'
 
@@ -20,10 +19,6 @@ const MainViewContainer = () => {
 
     case MainViewState.Settings:
       children = <SettingsScreen />
-      break
-
-    case MainViewState.LocalServer:
-      children = <LocalServerScreen />
       break
 
     default:

@@ -18,8 +18,7 @@ const DownloadEventListener: React.FC = () => {
     if (isRegistered.current) return
     await fetchEventSource(`${host}events/download`, {
       onmessage(ev) {
-        if (!ev.data) return
-        if (typeof ev.data === 'string') return
+        if (!ev.data || ev.data === '') return
         try {
           const downloadEvent = JSON.parse(ev.data) as DownloadState2[]
           setDownloadStateList(downloadEvent)
@@ -29,12 +28,16 @@ const DownloadEventListener: React.FC = () => {
       },
       signal: abortController.current.signal,
     })
+    console.log('Download event subscribed')
     isRegistered.current = true
   }, [host, setDownloadStateList])
 
   const unsubscribeDownloadEvent = useCallback(() => {
+    if (!isRegistered.current) return
+
     abortController.current.abort()
     isRegistered.current = false
+    console.log('Download event unsubscribed')
   }, [])
 
   useEffect(() => {

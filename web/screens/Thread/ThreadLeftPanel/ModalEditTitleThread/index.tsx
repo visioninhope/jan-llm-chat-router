@@ -4,28 +4,17 @@ import { Thread } from '@janhq/core'
 import { Modal, ModalClose, Button, Input } from '@janhq/joi'
 import { PencilIcon } from 'lucide-react'
 
-import { useCreateNewThread } from '@/hooks/useCreateNewThread'
-
 type Props = {
   thread: Thread
 }
 
-const ModalEditTitleThread = ({ thread }: Props) => {
+const ModalEditTitleThread: React.FC<Props> = ({ thread }) => {
   const [title, setTitle] = useState(thread.title)
 
-  const { updateThreadMetadata } = useCreateNewThread()
-
-  const onUpdateTitle = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-      e.stopPropagation()
-
-      updateThreadMetadata({
-        ...thread,
-        title: title || 'New Thread',
-      })
-    },
-    [thread, title, updateThreadMetadata]
-  )
+  const onUpdateTitle = useCallback(() => {
+    // TODO: NamH update title
+    console.log(title)
+  }, [title])
 
   return (
     <Modal
