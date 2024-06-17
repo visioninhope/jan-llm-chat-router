@@ -69,6 +69,13 @@ const useCortex = () => {
     [cortex.models]
   )
 
+  const stopModel = useCallback(
+    async (modelId: string, options?: Record<string, unknown>) => {
+      await cortex.models.stop(modelId, options ?? {})
+    },
+    [cortex.models]
+  )
+
   const streamChatMessages = useCallback(
     async (modelId: string, messages: ChatCompletionMessage[]) => {
       const stream = await cortex.chat.completions.create({
@@ -96,7 +103,6 @@ const useCortex = () => {
 
   const cleanThread = useCallback(async (threadId: string) => {
     // TODO: OpenAI does not support this
-    // remove all message except msg.role === ChatCompletionRole.System
   }, [])
 
   const deleteThread = useCallback(
@@ -175,6 +181,7 @@ const useCortex = () => {
     fetchModels,
     fetchMessages,
     startModel,
+    stopModel,
     streamChatMessages,
     deleteModel,
     deleteThread,

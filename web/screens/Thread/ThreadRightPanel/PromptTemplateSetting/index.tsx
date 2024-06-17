@@ -2,17 +2,14 @@ import { useCallback } from 'react'
 
 import { SettingComponentProps } from '@janhq/core'
 
-import { useAtomValue, useSetAtom } from 'jotai'
+import { useAtomValue } from 'jotai'
 
-import { useActiveModel } from '@/hooks/useActiveModel'
+import useModels from '@/hooks/useModels'
 import useUpdateModelParameters from '@/hooks/useUpdateModelParameters'
 
 import SettingComponent from '../../../../containers/ModelSetting/SettingComponent'
 
-import {
-  activeThreadAtom,
-  engineParamsUpdateAtom,
-} from '@/helpers/atoms/Thread.atom'
+import { activeThreadAtom } from '@/helpers/atoms/Thread.atom'
 
 type Props = {
   componentData: SettingComponentProps[]
@@ -21,22 +18,19 @@ type Props = {
 const PromptTemplateSetting: React.FC<Props> = ({ componentData }) => {
   const activeThread = useAtomValue(activeThreadAtom)
 
-  const { stopModel } = useActiveModel()
+  const { stopModel } = useModels()
   const { updateModelParameter } = useUpdateModelParameters()
 
-  const setEngineParamsUpdate = useSetAtom(engineParamsUpdateAtom)
   const onValueChanged = useCallback(
     (key: string, value: string | number | boolean) => {
       if (!activeThread) return
-
-      setEngineParamsUpdate(true)
-      stopModel()
+      stopModel(activeThread.assistants[0].model)
 
       updateModelParameter(activeThread, {
         params: { [key]: value },
       })
     },
-    [activeThread, setEngineParamsUpdate, stopModel, updateModelParameter]
+    [activeThread, stopModel, updateModelParameter]
   )
 
   return (

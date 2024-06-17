@@ -21,7 +21,7 @@ export enum InferenceEngine {
   mistral = 'mistral',
   martian = 'martian',
   openrouter = 'openrouter',
-  nitro = 'nitro',
+  cortexLlamacpp = 'cortex.llamacpp',
   openai = 'openai',
   groq = 'groq',
   triton_trtllm = 'triton_trtllm',

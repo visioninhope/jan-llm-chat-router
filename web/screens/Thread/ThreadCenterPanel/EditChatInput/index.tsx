@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { MessageStatus, ThreadMessage } from '@janhq/core'
+import { ThreadMessage } from '@janhq/core'
 
 import { TextArea, Button, Modal, ModalClose } from '@janhq/joi'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
@@ -101,7 +101,7 @@ const EditChatInput: React.FC<Props> = ({ message }) => {
   const onKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      if (messages[messages.length - 1]?.status !== MessageStatus.Pending)
+      if (messages[messages.length - 1]?.status !== 'in_progress')
         sendEditMessage()
       else stopInference()
     }

@@ -20,8 +20,6 @@ import useUpdateModelParameters from '@/hooks/useUpdateModelParameters'
 
 import { toGibibytes } from '@/utils/converter'
 
-import { extensionManager } from '@/extension'
-
 import { inActiveEngineProviderAtom } from '@/helpers/atoms/Extension.atom'
 import {
   configuredModelsAtom,
@@ -74,7 +72,7 @@ const ModelDropdown = ({
     () =>
       downloadedModels
         .filter((e) =>
-          e.name.toLowerCase().includes(searchText.toLowerCase().trim())
+          e.id.toLowerCase().includes(searchText.toLowerCase().trim())
         )
         .filter((e) => {
           if (searchFilter === 'all') {
@@ -82,25 +80,25 @@ const ModelDropdown = ({
           }
           if (searchFilter === 'local') {
             return (
-              e.engine === InferenceEngine.nitro ||
+              e.engine === InferenceEngine.cortexLlamacpp ||
               e.engine === InferenceEngine.nitro_tensorrt_llm
             )
           }
           if (searchFilter === 'remote') {
             return (
-              e.engine !== InferenceEngine.nitro &&
+              e.engine !== InferenceEngine.cortexLlamacpp &&
               e.engine !== InferenceEngine.nitro_tensorrt_llm
             )
           }
         })
-        .sort((a, b) => a.name.localeCompare(b.name)),
+        .sort((a, b) => a.id.localeCompare(b.id)),
     [downloadedModels, searchText, searchFilter]
   )
 
   useEffect(() => {
     if (!activeThread) return
     let model = downloadedModels.find(
-      (model) => model.id === activeThread.assistants[0].model.id
+      (model) => model.id === activeThread.assistants[0].model
     )
     if (!model) {
       model = recommendedModel
@@ -155,52 +153,13 @@ const ModelDropdown = ({
 
   const inActiveEngineProvider = useAtomValue(inActiveEngineProviderAtom)
 
-  useEffect(() => {
-    const getAllSettings = async () => {
-      const extensionsMenu: {
-        name?: string
-        setting: string
-        apiKey: string
-        provider: string
-      }[] = []
-      const extensions = extensionManager.getAll()
-
-      for (const extension of extensions) {
-        if (typeof extension.getSettings === 'function') {
-          const settings = await extension.getSettings()
-
-          if (
-            (settings && settings.length > 0) ||
-            (await extension.installationState()) !== 'NotRequired'
-          ) {
-            extensionsMenu.push({
-              name: extension.productName,
-              setting: extension.name,
-              apiKey:
-                'apiKey' in extension && typeof extension.apiKey === 'string'
-                  ? extension.apiKey
-                  : '',
-              provider:
-                'provider' in extension &&
-                typeof extension.provider === 'string'
-                  ? extension.provider
-                  : '',
-            })
-          }
-        }
-      }
-      setExtensionHasSettings(extensionsMenu)
-    }
-    getAllSettings()
-  }, [])
-
   const findByEngine = filteredDownloadedModels
     .filter((x) => !inActiveEngineProvider.includes(x.engine))
     .map((x) => x.engine)
 
   const groupByEngine = findByEngine.filter(function (item, index) {
     if (findByEngine.indexOf(item) === index)
-      return item !== InferenceEngine.nitro
+      return item !== InferenceEngine.cortexLlamacpp
   })
 
   if (strictedThread && !activeThread) {
@@ -216,11 +175,11 @@ const ModelDropdown = ({
             className="cursor-pointer"
             onClick={() => setOpen(!open)}
           >
-            <span className="line-clamp-1 ">{selectedModel?.name}</span>
+            <span className="line-clamp-1 ">{selectedModel?.id}</span>
           </Badge>
         ) : (
           <Input
-            value={selectedModel?.name || ''}
+            value={selectedModel?.id || ''}
             className="cursor-pointer"
             disabled={disabled}
             readOnly
@@ -280,7 +239,7 @@ const ModelDropdown = ({
           </div>
           <ScrollArea className="h-[calc(100%-36px)] w-full">
             {filteredDownloadedModels.filter(
-              (x) => x.engine === InferenceEngine.nitro
+              (x) => x.engine === InferenceEngine.cortexLlamacpp
             ).length !== 0 ? (
               <div className="relative w-full">
                 <div className="mt-2">
@@ -289,23 +248,23 @@ const ModelDropdown = ({
                   </h6>
                   <ul className="pb-2">
                     {filteredDownloadedModels
-                      ? filteredDownloadedModels
-                          .filter((x) => x.engine === InferenceEngine.nitro)
-                          .map((model) => {
-                            return (
-                              <li
-                                key={model.id}
-                                className="flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-[hsla(var(--dropdown-menu-hover-bg))]"
-                                onClick={() => onClickModelItem(model.id)}
-                              >
-                                <p className="line-clamp-1" title={model.name}>
-                                  {model.name}
-                                </p>
-                                <ModelLabel metadata={model.metadata} compact />
-                              </li>
-                            )
-                          })
-                      : null}
+                      .filter(
+                        (x) => x.engine === InferenceEngine.cortexLlamacpp
+                      )
+                      .map((model) => {
+                        return (
+                          <li
+                            key={model.id}
+                            className="flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-[hsla(var(--dropdown-menu-hover-bg))]"
+                            onClick={() => onClickModelItem(model.id)}
+                          >
+                            <p className="line-clamp-1" title={model.id}>
+                              {model.id}
+                            </p>
+                            <ModelLabel metadata={model.metadata} compact />
+                          </li>
+                        )
+                      })}
                   </ul>
                 </div>
               </div>
@@ -360,9 +319,11 @@ const ModelDropdown = ({
                       ) : (
                         <ul className="pb-2">
                           {configuredModels
-                            .filter((x) => x.engine === InferenceEngine.nitro)
+                            .filter(
+                              (x) => x.engine === InferenceEngine.cortexLlamacpp
+                            )
                             .filter((e) =>
-                              e.name
+                              e.id
                                 .toLowerCase()
                                 .includes(searchText.toLowerCase().trim())
                             )
@@ -472,8 +433,8 @@ const ModelDropdown = ({
                                     )
                                   }
                                 })}
-                                <p className="line-clamp-1" title={model.name}>
-                                  {model.name}
+                                <p className="line-clamp-1" title={model.id}>
+                                  {model.id}
                                 </p>
                               </div>
                             </li>

@@ -40,7 +40,7 @@ import * as node from "@janhq/core/node";
         private static inference(incomingMessage: MessageRequestData) {
 
           // Prepare customized message content
-          const content: ThreadContent = {
+          const content: MessageContent = {
             type: ContentType.Text,
             text: {
               value: "I'm Jan Assistant!",

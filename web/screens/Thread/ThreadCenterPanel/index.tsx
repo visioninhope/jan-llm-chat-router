@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { Fragment, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Accept, useDropzone } from 'react-dropzone'
 
@@ -12,13 +12,11 @@ import { twMerge } from 'tailwind-merge'
 
 import CenterPanelContainer from '@/containers/CenterPanelContainer'
 import GenerateResponse from '@/containers/Loader/GenerateResponse'
-import ModelReload from '@/containers/Loader/ModelReload'
-import ModelStart from '@/containers/Loader/ModelStart'
 import { fileUploadAtom } from '@/containers/Providers/Jotai'
 import { snackbar } from '@/containers/Toast'
 
 import { activeModelAtom } from '@/hooks/useActiveModel'
-import { queuedMessageAtom, reloadModelAtom } from '@/hooks/useSendChatMessage'
+import { queuedMessageAtom } from '@/hooks/useSendChatMessage'
 
 import ChatBody from '@/screens/Thread/ThreadCenterPanel/ChatBody'
 
@@ -30,10 +28,7 @@ import { experimentalFeatureEnabledAtom } from '@/helpers/atoms/AppConfig.atom'
 import { downloadedModelsAtom } from '@/helpers/atoms/Model.atom'
 import { activeThreadAtom } from '@/helpers/atoms/Thread.atom'
 
-import {
-  engineParamsUpdateAtom,
-  isGeneratingResponseAtom,
-} from '@/helpers/atoms/Thread.atom'
+import { isGeneratingResponseAtom } from '@/helpers/atoms/Thread.atom'
 
 const renderError = (code: string) => {
   switch (code) {
@@ -138,11 +133,9 @@ const ThreadCenterPanel = () => {
     }, 2000)
   }, [dragRejected.code])
 
-  const engineParamsUpdate = useAtomValue(engineParamsUpdateAtom)
   const [dragOver, setDragOver] = useState(false)
 
   const queuedMessage = useAtomValue(queuedMessageAtom)
-  const reloadModel = useAtomValue(reloadModelAtom)
 
   const activeModel = useAtomValue(activeModelAtom)
 
@@ -202,9 +195,9 @@ const ThreadCenterPanel = () => {
             <RequestDownloadModel />
           )}
 
-          {!engineParamsUpdate && <ModelStart />}
+          {/* {!engineParamsUpdate && <ModelStart />} */}
 
-          {reloadModel && (
+          {/* {reloadModel && (
             <Fragment>
               <ModelReload />
               <div className="mb-2 text-center">
@@ -213,9 +206,9 @@ const ThreadCenterPanel = () => {
                 </span>
               </div>
             </Fragment>
-          )}
+          )} */}
 
-          {queuedMessage && !reloadModel && (
+          {queuedMessage && (
             <div className="mb-2 text-center">
               <span className="text-[hsla(var(--text-secondary)]">
                 Message will be sent once the model has started

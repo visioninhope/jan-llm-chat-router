@@ -12,7 +12,7 @@ import {
 const useModels = () => {
   const setDownloadedModels = useSetAtom(downloadedModelsAtom)
   const setConfiguredModels = useSetAtom(configuredModelsAtom)
-  const { fetchModels } = useCortex()
+  const { fetchModels, stopModel: cortexStopModel } = useCortex()
 
   const getModels = useCallback(() => {
     const getDownloadedModels = async () => {
@@ -23,7 +23,12 @@ const useModels = () => {
     getDownloadedModels()
   }, [setDownloadedModels, setConfiguredModels, fetchModels])
 
-  return { getModels }
+  const stopModel = useCallback(
+    async (modelId: string) => cortexStopModel(modelId),
+    [cortexStopModel]
+  )
+
+  return { getModels, stopModel }
 }
 
 export default useModels

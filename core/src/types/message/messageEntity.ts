@@ -1,4 +1,7 @@
-import { Message as OpenAiMessage } from 'openai/resources/beta/threads/messages'
+import {
+  MessageContent as OpenAiMessageContent,
+  Message as OpenAiMessage,
+} from 'openai/resources/beta/threads/messages'
 import { ChatCompletionMessage } from '../inference'
 import { ModelInfo } from '../model'
 import { Thread } from '../thread'
@@ -36,21 +39,6 @@ export type MessageRequest = {
   type?: string
 }
 
-/**
- * The status of the message.
- * @data_transfer_object
- */
-export enum MessageStatus {
-  /** Message is fully loaded. **/
-  Ready = 'ready',
-  /** Message is not fully loaded. **/
-  Pending = 'pending',
-  /** Message loaded with error. **/
-  Error = 'error',
-  /** Message is cancelled streaming */
-  Stopped = 'stopped',
-}
-
 export enum ErrorCode {
   InvalidApiKey = 'invalid_api_key',
 
@@ -71,21 +59,7 @@ export enum ContentType {
 }
 
 /**
- * The `ContentValue` type defines the shape of a content value object
+ * The `MessageContent` type defines the shape of a message's content object
  * @data_transfer_object
  */
-export type ContentValue = {
-  value: string
-  annotations: string[]
-  name?: string
-  size?: number
-}
-
-/**
- * The `ThreadContent` type defines the shape of a message's content object
- * @data_transfer_object
- */
-export type ThreadContent = {
-  type: ContentType
-  text: ContentValue
-}
+export type MessageContent = OpenAiMessageContent

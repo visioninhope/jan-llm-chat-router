@@ -1,9 +1,4 @@
-import {
-  ChatCompletionRole,
-  MessageStatus,
-  ThreadContent,
-  ThreadMessage,
-} from '@janhq/core'
+import { MessageContent, ThreadMessage } from '@janhq/core'
 import { atom } from 'jotai'
 
 import { getActiveThreadIdAtom } from './Thread.atom'
@@ -64,7 +59,7 @@ export const cleanChatMessageAtom = atom(null, (get, set, id: string) => {
   const newData: Record<string, ThreadMessage[]> = {
     ...get(chatMessages),
   }
-  newData[id] = newData[id]?.filter((e) => e.role === ChatCompletionRole.System)
+  newData[id] = []
   set(chatMessages, newData)
 })
 
@@ -73,14 +68,10 @@ export const deleteMessageAtom = atom(null, (get, set, id: string) => {
     ...get(chatMessages),
   }
   const threadId = get(getActiveThreadIdAtom)
-  if (threadId) {
-    // Should also delete error messages to clear out the error state
-    newData[threadId] = newData[threadId].filter(
-      (e) => e.id !== id && e.status !== MessageStatus.Error
-    )
+  if (!threadId) return
 
-    set(chatMessages, newData)
-  }
+  newData[threadId] = newData[threadId].filter((e) => e.id !== id)
+  set(chatMessages, newData)
 })
 
 export const editMessageAtom = atom('')
@@ -92,8 +83,8 @@ export const updateMessageAtom = atom(
     set,
     id: string,
     conversationId: string,
-    text: ThreadContent[],
-    status: MessageStatus
+    text: MessageContent[],
+    status: 'in_progress' | 'completed' | 'incomplete'
   ) => {
     const messages = get(chatMessages)[conversationId] ?? []
     const message = messages.find((e) => e.id === id)
@@ -101,7 +92,6 @@ export const updateMessageAtom = atom(
       message.content = text
       message.status = status
       const updatedMessages = [...messages]
-
       const newData: Record<string, ThreadMessage[]> = {
         ...get(chatMessages),
       }

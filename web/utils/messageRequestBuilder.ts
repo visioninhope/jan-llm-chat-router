@@ -3,10 +3,8 @@ import {
   ChatCompletionMessageContent,
   ChatCompletionMessageContentText,
   ChatCompletionMessageContentType,
-  ChatCompletionRole,
   MessageRequest,
   MessageRequestType,
-  MessageStatus,
   ModelInfo,
   Thread,
   ThreadMessage,
@@ -32,12 +30,10 @@ export class MessageRequestBuilder {
     this.type = type
     this.model = model
     this.thread = thread
-    this.messages = messages
-      .filter((e) => e.status !== MessageStatus.Error)
-      .map<ChatCompletionMessage>((msg) => ({
-        role: msg.role,
-        content: msg.content[0]?.text.value ?? '',
-      }))
+    this.messages = messages.map<ChatCompletionMessage>((msg) => ({
+      role: msg.role,
+      content: msg.content[0]?.text.value ?? '',
+    }))
   }
 
   // Chainable
@@ -54,22 +50,9 @@ export class MessageRequestBuilder {
     this.messages = [
       ...this.messages,
       {
-        role: ChatCompletionRole.User,
+        role: 'user',
         content: message,
       },
-    ]
-    return this
-  }
-
-  // Chainable
-  addSystemMessage(message: string | undefined) {
-    if (!message || message.trim() === '') return this
-    this.messages = [
-      {
-        role: ChatCompletionRole.System,
-        content: message,
-      },
-      ...this.messages,
     ]
     return this
   }
@@ -77,7 +60,7 @@ export class MessageRequestBuilder {
   // Chainable
   addDocMessage(prompt: string) {
     const message: ChatCompletionMessage = {
-      role: ChatCompletionRole.User,
+      role: 'user',
       content: [
         {
           type: ChatCompletionMessageContentType.Text,
@@ -98,7 +81,7 @@ export class MessageRequestBuilder {
   // Chainable
   addImageMessage(prompt: string, base64: string) {
     const message: ChatCompletionMessage = {
-      role: ChatCompletionRole.User,
+      role: 'user',
       content: [
         {
           type: ChatCompletionMessageContentType.Text,
@@ -122,7 +105,7 @@ export class MessageRequestBuilder {
     if (
       this.messages.length &&
       this.messages[lastMessageIndex] &&
-      this.messages[lastMessageIndex].role === ChatCompletionRole.Assistant
+      this.messages[lastMessageIndex].role === 'assistant'
     ) {
       this.messages.pop()
     }

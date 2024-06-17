@@ -1,11 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 
-import {
-  ChatCompletionRole,
-  ContentType,
-  MessageStatus,
-  ThreadMessage,
-} from '@janhq/core'
+import { ContentType, ThreadMessage } from '@janhq/core'
 
 import { Tooltip } from '@janhq/joi'
 import hljs from 'highlight.js'
@@ -42,8 +37,7 @@ import { activeThreadAtom } from '@/helpers/atoms/Thread.atom'
 
 const SimpleTextMessage: React.FC<ThreadMessage> = (props) => {
   let text = ''
-  const isUser = props.role === ChatCompletionRole.User
-  const isSystem = props.role === ChatCompletionRole.System
+  const isUser = props.role === 'user'
   const editMessage = useAtomValue(editMessageAtom)
   const activeThread = useAtomValue(activeThreadAtom)
 
@@ -124,7 +118,7 @@ const SimpleTextMessage: React.FC<ThreadMessage> = (props) => {
   }, [])
 
   useEffect(() => {
-    if (props.status !== MessageStatus.Pending) {
+    if (props.status !== 'in_progress') {
       return
     }
     const currentTimestamp = new Date().getTime() // Get current time in milliseconds
@@ -152,7 +146,7 @@ const SimpleTextMessage: React.FC<ThreadMessage> = (props) => {
           !isUser && 'mt-2'
         )}
       >
-        {!isUser && !isSystem && <LogoMark width={28} />}
+        {!isUser && <LogoMark width={28} />}
         {isUser && (
           <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[hsla(var(--app-border))] last:border-none">
             <svg
@@ -181,7 +175,7 @@ const SimpleTextMessage: React.FC<ThreadMessage> = (props) => {
             : activeThread?.assistants[0].assistant_name ?? props.role}
         </div>
         <p className="text-xs font-medium text-gray-400">
-          {displayDate(props.created)}
+          {displayDate(props.created_at)}
         </p>
         <div
           className={twMerge(
@@ -194,7 +188,7 @@ const SimpleTextMessage: React.FC<ThreadMessage> = (props) => {
           <MessageToolbar message={props} />
         </div>
         {messages[messages.length - 1]?.id === props.id &&
-          (props.status === MessageStatus.Pending || tokenSpeed > 0) && (
+          (props.status === 'in_progress' || tokenSpeed > 0) && (
             <p className="absolute right-8 text-xs font-medium text-[hsla(var(--text-secondary))]">
               Token Speed: {Number(tokenSpeed).toFixed(2)}t/s
             </p>
@@ -203,7 +197,7 @@ const SimpleTextMessage: React.FC<ThreadMessage> = (props) => {
 
       <div className={twMerge('w-full')}>
         <>
-          {props.content[0]?.type === ContentType.Image && (
+          {props.content[0]?.type === 'image_file' && (
             <div className="group/image relative mb-2 inline-flex cursor-pointer overflow-hidden rounded-xl">
               <div className="left-0 top-0 z-20 h-full w-full group-hover/image:inline-block">
                 <RelativeImage

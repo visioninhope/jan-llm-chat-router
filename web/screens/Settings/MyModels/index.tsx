@@ -32,9 +32,9 @@ const MyModels = () => {
     () =>
       downloadedModels
         .filter((e) =>
-          e.name.toLowerCase().includes(searchText.toLowerCase().trim())
+          e.id.toLowerCase().includes(searchText.toLowerCase().trim())
         )
-        .sort((a, b) => a.name.localeCompare(b.name)),
+        .sort((a, b) => a.id.localeCompare(b.id)),
     [downloadedModels, searchText]
   )
 
@@ -55,7 +55,7 @@ const MyModels = () => {
   const findByEngine = filteredDownloadedModels.map((x) => x.engine)
   const groupByEngine = findByEngine.filter(function (item, index) {
     if (findByEngine.indexOf(item) === index)
-      return item !== InferenceEngine.nitro
+      return item !== InferenceEngine.cortexLlamacpp
   })
 
   return (
@@ -98,7 +98,7 @@ const MyModels = () => {
 
           <div className="relative w-full">
             {filteredDownloadedModels.filter(
-              (x) => x.engine === InferenceEngine.nitro
+              (x) => x.engine === InferenceEngine.cortexLlamacpp
             ).length !== 0 && (
               <div className="my-6">
                 <div className="flex flex-col items-start justify-start gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -106,12 +106,10 @@ const MyModels = () => {
                 </div>
                 <div className="mt-2">
                   {filteredDownloadedModels
-                    ? filteredDownloadedModels
-                        .filter((x) => x.engine === InferenceEngine.nitro)
-                        .map((model) => {
-                          return <MyModelList key={model.id} model={model} />
-                        })
-                    : null}
+                    .filter((x) => x.engine === InferenceEngine.cortexLlamacpp)
+                    .map((model) => (
+                      <MyModelList key={model.id} model={model} />
+                    ))}
                 </div>
               </div>
             )}

@@ -1,16 +1,15 @@
 import { useCallback } from 'react'
 
 import { SettingComponentProps } from '@janhq/core'
-import { useAtomValue, useSetAtom } from 'jotai'
+import { useAtomValue } from 'jotai'
 
-import { useActiveModel } from '@/hooks/useActiveModel'
+import { activeModelAtom } from '@/hooks/useActiveModel'
+
+import useModels from '@/hooks/useModels'
 
 import SettingComponentBuilder from '../../../../containers/ModelSetting/SettingComponent'
 
-import {
-  activeThreadAtom,
-  engineParamsUpdateAtom,
-} from '@/helpers/atoms/Thread.atom'
+import { activeThreadAtom } from '@/helpers/atoms/Thread.atom'
 
 type Props = {
   componentData: SettingComponentProps[]
@@ -18,8 +17,8 @@ type Props = {
 
 const AssistantSetting: React.FC<Props> = ({ componentData }) => {
   const activeThread = useAtomValue(activeThreadAtom)
-  const { stopModel } = useActiveModel()
-  const setEngineParamsUpdate = useSetAtom(engineParamsUpdateAtom)
+  const activeModel = useAtomValue(activeModelAtom)
+  const { stopModel } = useModels()
 
   const onValueChanged = useCallback(
     (key: string, value: string | number | boolean) => {
@@ -27,8 +26,7 @@ const AssistantSetting: React.FC<Props> = ({ componentData }) => {
       const shouldReloadModel =
         componentData.find((x) => x.key === key)?.requireModelReload ?? false
       if (shouldReloadModel) {
-        setEngineParamsUpdate(true)
-        stopModel()
+        if (activeModel) stopModel(activeModel.id)
       }
 
       if (
@@ -55,7 +53,7 @@ const AssistantSetting: React.FC<Props> = ({ componentData }) => {
         }
       }
     },
-    [activeThread, componentData, setEngineParamsUpdate, stopModel]
+    [activeModel, activeThread, componentData, stopModel]
   )
 
   if (!activeThread) return null

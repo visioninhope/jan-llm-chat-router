@@ -2,19 +2,17 @@ import { Fragment } from 'react'
 
 import { Tooltip, Button, Badge } from '@janhq/joi'
 
-import { useAtom } from 'jotai'
-
 import { useActiveModel } from '@/hooks/useActiveModel'
 
-import { toGibibytes } from '@/utils/converter'
+import useModels from '@/hooks/useModels'
 
-import { serverEnabledAtom } from '@/helpers/atoms/LocalServer.atom'
+import { toGibibytes } from '@/utils/converter'
 
 const Column = ['Name', 'Size', '']
 
 const TableActiveModel = () => {
-  const { activeModel, stateModel, stopModel } = useActiveModel()
-  const [serverEnabled, setServerEnabled] = useAtom(serverEnabledAtom)
+  const { stopModel } = useModels()
+  const { activeModel, stateModel } = useActiveModel()
 
   return (
     <div className="m-4 mr-0 w-1/2">
@@ -59,9 +57,7 @@ const TableActiveModel = () => {
                               : 'primary'
                           }
                           onClick={() => {
-                            stopModel()
-                            window.core?.api?.stopServer()
-                            setServerEnabled(false)
+                            stopModel(activeModel.id)
                           }}
                         >
                           Stop
@@ -69,7 +65,6 @@ const TableActiveModel = () => {
                       }
                       content="The API server is running, stop the model will
                       also stop the server"
-                      disabled={!serverEnabled}
                     />
                   </td>
                 </tr>

@@ -1,11 +1,6 @@
 import { useCallback } from 'react'
 
-import {
-  MessageStatus,
-  ThreadMessage,
-  ChatCompletionRole,
-  ContentType,
-} from '@janhq/core'
+import { ThreadMessage, ContentType } from '@janhq/core'
 import { useAtomValue, useSetAtom } from 'jotai'
 import {
   RefreshCcw,
@@ -17,7 +12,6 @@ import {
 
 import { useClipboard } from '@/hooks/useClipboard'
 import useCortex from '@/hooks/useCortex'
-import useSendChatMessage from '@/hooks/useSendChatMessage'
 
 import {
   deleteMessageAtom,
@@ -29,7 +23,6 @@ const MessageToolbar = ({ message }: { message: ThreadMessage }) => {
   const deleteMessage = useSetAtom(deleteMessageAtom)
   const setEditMessage = useSetAtom(editMessageAtom)
   const messages = useAtomValue(getCurrentChatMessagesAtom)
-  const { resendChatMessage } = useSendChatMessage()
   const clipboard = useClipboard({ timeout: 1000 })
   const { deleteMessage: deleteCortexMessage } = useCortex()
 
@@ -41,12 +34,12 @@ const MessageToolbar = ({ message }: { message: ThreadMessage }) => {
     [deleteMessage, deleteCortexMessage]
   )
 
-  if (message.status === MessageStatus.Pending) return null
+  if (message.status === 'in_progress') return null
 
   return (
     <div className="flex flex-row items-center">
       <div className="flex gap-1 bg-[hsla(var(--app-bg))]">
-        {message.role === ChatCompletionRole.User &&
+        {message.role === 'user' &&
           message.content[0]?.type === ContentType.Text && (
             <div
               className="cursor-pointer rounded-lg border border-[hsla(var(--app-border))] p-2"
@@ -60,12 +53,11 @@ const MessageToolbar = ({ message }: { message: ThreadMessage }) => {
           )}
 
         {message.id === messages[messages.length - 1]?.id &&
-          messages[messages.length - 1].status !== MessageStatus.Error &&
           messages[messages.length - 1].content[0]?.type !==
             ContentType.Pdf && (
             <div
               className="cursor-pointer rounded-lg border border-[hsla(var(--app-border))] p-2"
-              onClick={() => resendChatMessage(message)}
+              onClick={() => {}}
             >
               <RefreshCcw
                 size={14}

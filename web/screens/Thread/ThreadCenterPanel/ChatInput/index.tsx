@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from 'react'
 
-import { MessageStatus } from '@janhq/core'
-
 import {
   TextArea,
   Button,
@@ -109,7 +107,7 @@ const ChatInput = () => {
   const onKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault()
-      if (messages[messages.length - 1]?.status !== MessageStatus.Pending)
+      if (messages[messages.length - 1]?.status !== 'in_progress')
         sendChatMessage(currentPrompt)
       else onStopInferenceClick()
     }
@@ -327,7 +325,7 @@ const ChatInput = () => {
                 </Button>
               </div>
             )}
-            {messages[messages.length - 1]?.status !== MessageStatus.Pending &&
+            {messages[messages.length - 1]?.status !== 'in_progress' &&
             !isGeneratingResponse &&
             !isStreamingResponse ? (
               <>

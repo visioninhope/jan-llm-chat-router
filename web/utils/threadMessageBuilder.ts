@@ -1,10 +1,4 @@
-import {
-  ChatCompletionRole,
-  ContentType,
-  MessageStatus,
-  ThreadContent,
-  ThreadMessage,
-} from '@janhq/core'
+import { ContentType, MessageContent, ThreadMessage } from '@janhq/core'
 
 import { FileInfo } from '@/containers/Providers/Jotai'
 
@@ -13,7 +7,7 @@ import { MessageRequestBuilder } from './messageRequestBuilder'
 export class ThreadMessageBuilder {
   messageRequest: MessageRequestBuilder
 
-  content: ThreadContent[] = []
+  content: MessageContent[] = []
 
   constructor(messageRequest: MessageRequestBuilder) {
     this.messageRequest = messageRequest
@@ -24,12 +18,18 @@ export class ThreadMessageBuilder {
     return {
       id: this.messageRequest.msgId,
       thread_id: this.messageRequest.thread.id,
-      role: ChatCompletionRole.User,
-      status: MessageStatus.Ready,
-      created: timestamp,
-      updated: timestamp,
+      role: 'user',
+      status: 'completed',
+      created_at: timestamp,
       object: 'thread.message',
       content: this.content,
+      assistant_id: null,
+      attachments: null,
+      completed_at: null,
+      incomplete_at: null,
+      incomplete_details: null,
+      metadata: undefined,
+      run_id: null,
     }
   }
 

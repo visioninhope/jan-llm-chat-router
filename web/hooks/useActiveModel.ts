@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
-import { EngineManager, Model } from '@janhq/core'
+import { Model } from '@janhq/core'
 
 import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai'
 
@@ -55,11 +55,6 @@ export function useActiveModel() {
     setPendingModelLoad(true)
 
     let model = downloadedModelsRef?.current.find((e) => e.id === modelId)
-
-    const error = await stopModel().catch((error: Error) => error)
-    if (error) {
-      return Promise.reject(error)
-    }
 
     setLoadModelError(undefined)
 
@@ -164,40 +159,13 @@ export function useActiveModel() {
     //   })
   }
 
-  const stopModel = useCallback(async () => {
-    const stoppingModel = activeModel || stateModel.model
-    if (!stoppingModel || (stateModel.state === 'stop' && stateModel.loading))
-      return
+  // const stopInference = useCallback(async () => {
+  //   // Loading model
+  //   if (stateModel.loading) {
+  //     stopModel()
+  //     return
+  //   }
+  // }, [stateModel, stopModel])
 
-    setStateModel({ state: 'stop', loading: true, model: stoppingModel })
-    const engine = EngineManager.instance().get(stoppingModel.engine)
-    return engine
-      ?.unloadModel(stoppingModel)
-      .catch()
-      .then(() => {
-        setActiveModel(undefined)
-        setStateModel({ state: 'start', loading: false, model: undefined })
-        setPendingModelLoad(false)
-      })
-  }, [
-    activeModel,
-    setActiveModel,
-    setStateModel,
-    setPendingModelLoad,
-    stateModel,
-  ])
-
-  const stopInference = useCallback(async () => {
-    // Loading model
-    if (stateModel.loading) {
-      stopModel()
-      return
-    }
-    if (!activeModel) return
-
-    const engine = EngineManager.instance().get(activeModel.engine)
-    engine?.stopInference()
-  }, [activeModel, stateModel, stopModel])
-
-  return { activeModel, startModel, stopModel, stopInference, stateModel }
+  return { activeModel, startModel, stateModel }
 }

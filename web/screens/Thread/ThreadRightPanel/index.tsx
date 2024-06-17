@@ -9,7 +9,7 @@ import {
   AccordionItem,
 } from '@janhq/joi'
 
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { useAtom, useAtomValue } from 'jotai'
 
 import EngineSetting from '@/containers/EngineSetting'
 import ModelDropdown from '@/containers/ModelDropdown'
@@ -17,9 +17,7 @@ import ModelDropdown from '@/containers/ModelDropdown'
 import ModelSetting from '@/containers/ModelSetting'
 import RightPanelContainer from '@/containers/RightPanelContainer'
 
-import { useActiveModel } from '@/hooks/useActiveModel'
-import { useCreateNewThread } from '@/hooks/useCreateNewThread'
-
+import useModels from '@/hooks/useModels'
 import useUpdateModelParameters from '@/hooks/useUpdateModelParameters'
 
 import { getConfigurationsData } from '@/utils/componentSettings'
@@ -32,7 +30,6 @@ import { experimentalFeatureEnabledAtom } from '@/helpers/atoms/AppConfig.atom'
 import { selectedModelAtom } from '@/helpers/atoms/Model.atom'
 import {
   activeThreadAtom,
-  engineParamsUpdateAtom,
   getActiveThreadModelParamsAtom,
 } from '@/helpers/atoms/Thread.atom'
 
@@ -47,8 +44,7 @@ const ThreadRightPanel = () => {
   )
   const experimentalFeature = useAtomValue(experimentalFeatureEnabledAtom)
 
-  const setEngineParamsUpdate = useSetAtom(engineParamsUpdateAtom)
-  const { stopModel } = useActiveModel()
+  const { stopModel } = useModels()
   const { updateModelParameter } = useUpdateModelParameters()
 
   const settings = useMemo(() => {
@@ -143,8 +139,8 @@ const ThreadRightPanel = () => {
         return
       }
 
-      setEngineParamsUpdate(true)
-      stopModel()
+      // TODO: NamH check if we need to stop the model
+      stopModel(activeThread.assistants[0].model)
 
       updateModelParameter(activeThread, {
         params: { [key]: value },
@@ -176,7 +172,7 @@ const ThreadRightPanel = () => {
         }
       }
     },
-    [activeThread, setEngineParamsUpdate, stopModel, updateModelParameter]
+    [activeThread, stopModel, updateModelParameter]
   )
 
   if (!activeThread) {

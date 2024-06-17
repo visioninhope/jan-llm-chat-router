@@ -14,6 +14,8 @@ import { twMerge } from 'tailwind-merge'
 import { useActiveModel } from '@/hooks/useActiveModel'
 import useDeleteModel from '@/hooks/useDeleteModel'
 
+import useModels from '@/hooks/useModels'
+
 import { toGibibytes } from '@/utils/converter'
 
 import { serverEnabledAtom } from '@/helpers/atoms/LocalServer.atom'
@@ -24,11 +26,13 @@ type Props = {
 }
 
 const MyModelList = ({ model }: Props) => {
-  const { activeModel, startModel, stopModel, stateModel } = useActiveModel()
+  const { activeModel, startModel, stateModel } = useActiveModel()
   const isActiveModel = stateModel.model?.id === model.id
   const { deleteModel } = useDeleteModel()
   const [more, setMore] = useState(false)
   const [serverEnabled, setServerEnabled] = useAtom(serverEnabledAtom)
+
+  const { stopModel } = useModels()
 
   const [menu, setMenu] = useState<HTMLDivElement | null>(null)
   const [toggle, setToggle] = useState<HTMLDivElement | null>(null)
@@ -36,7 +40,7 @@ const MyModelList = ({ model }: Props) => {
 
   const onModelActionClick = (modelId: string) => {
     if (activeModel && activeModel.id === modelId) {
-      stopModel()
+      stopModel(activeModel.id)
       window.core?.api?.stopServer()
       setServerEnabled(false)
     } else if (!serverEnabled) {
@@ -69,14 +73,14 @@ const MyModelList = ({ model }: Props) => {
             <h6
               className={twMerge(
                 'line-clamp-1 max-w-[200px] font-medium',
-                model.engine !== InferenceEngine.nitro &&
+                model.engine !== InferenceEngine.cortexLlamacpp &&
                   'max-w-none text-[hsla(var(--text-secondary))]'
               )}
-              title={model.name}
+              title={model.id}
             >
-              {model.name}
+              {model.id}
             </h6>
-            {model.engine === InferenceEngine.nitro && (
+            {model.engine === InferenceEngine.cortexLlamacpp && (
               <div className="flex gap-x-8">
                 <p
                   className="line-clamp-1 max-w-[120px] text-[hsla(var(--text-secondary))] xl:max-w-none"
@@ -89,7 +93,7 @@ const MyModelList = ({ model }: Props) => {
           </div>
         </div>
 
-        {model.engine === InferenceEngine.nitro && (
+        {model.engine === InferenceEngine.cortexLlamacpp && (
           <div className="flex gap-x-4">
             <Badge theme="secondary" className="sm:mr-16">
               {toGibibytes(model.metadata.size)}
@@ -191,7 +195,7 @@ const MyModelList = ({ model }: Props) => {
                       onClick={() => {
                         setTimeout(async () => {
                           if (!serverEnabled) {
-                            await stopModel()
+                            await stopModel(model.id)
                             deleteModel(model)
                           }
                         }, 500)

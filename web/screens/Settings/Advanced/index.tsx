@@ -22,7 +22,8 @@ import { twMerge } from 'tailwind-merge'
 
 import { snackbar, toaster } from '@/containers/Toast'
 
-import { useActiveModel } from '@/hooks/useActiveModel'
+import { activeModelAtom } from '@/hooks/useActiveModel'
+import useModels from '@/hooks/useModels'
 import { useSettings } from '@/hooks/useSettings'
 
 import DataFolder from './DataFolder'
@@ -43,19 +44,6 @@ type GPU = {
   name: string
 }
 
-const test = [
-  {
-    id: 'test a',
-    vram: 2,
-    name: 'nvidia A',
-  },
-  {
-    id: 'test',
-    vram: 2,
-    name: 'nvidia B',
-  },
-]
-
 const Advanced = () => {
   const [experimentalEnabled, setExperimentalEnabled] = useAtom(
     experimentalFeatureEnabledAtom
@@ -69,7 +57,7 @@ const Advanced = () => {
 
   const [partialProxy, setPartialProxy] = useState<string>(proxy)
   const [gpuEnabled, setGpuEnabled] = useState<boolean>(false)
-  const [gpuList, setGpuList] = useState<GPU[]>(test)
+  const [gpuList, setGpuList] = useState<GPU[]>([])
   const [gpusInUse, setGpusInUse] = useState<string[]>([])
   const [dropdownOptions, setDropdownOptions] = useState<HTMLDivElement | null>(
     null
@@ -78,8 +66,9 @@ const Advanced = () => {
   const [toggle, setToggle] = useState<HTMLDivElement | null>(null)
 
   const { readSettings, saveSettings } = useSettings()
-  const { stopModel } = useActiveModel()
+  const activeModel = useAtomValue(activeModelAtom)
   const [open, setOpen] = useState(false)
+  const { stopModel } = useModels()
 
   const selectedGpu = gpuList
     .filter((x) => gpusInUse.includes(x.id))
@@ -116,7 +105,9 @@ const Advanced = () => {
       title: 'Reload',
       description: 'Vulkan settings updated. Reload now to apply the changes.',
     })
-    stopModel()
+    if (activeModel) {
+      await stopModel(activeModel.id)
+    }
     setVulkanEnabled(e)
     await saveSettings({ vulkan: e, gpusInUse: [] })
     // Relaunch to apply settings
@@ -275,7 +266,11 @@ const Advanced = () => {
                           })
                         }
                         // Stop any running model to apply the changes
-                        if (e.target.checked !== gpuEnabled) stopModel()
+                        if (e.target.checked !== gpuEnabled) {
+                          if (activeModel) {
+                            stopModel(activeModel.id)
+                          }
+                        }
                       }}
                     />
                   }
