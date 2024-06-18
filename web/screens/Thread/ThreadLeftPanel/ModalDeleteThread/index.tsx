@@ -1,22 +1,26 @@
-import { useCallback, memo } from 'react'
+import { useCallback } from 'react'
+
+import React from 'react'
 
 import { Modal, ModalClose, Button } from '@janhq/joi'
 import { Trash2Icon } from 'lucide-react'
 
-import useDeleteThread from '@/hooks/useDeleteThread'
+import useThreads from '@/hooks/useThreads'
 
 type Props = {
-  threadId: string
+  id: string
+  title: string
 }
 
-const ModalDeleteThread = ({ threadId }: Props) => {
-  const { deleteThread } = useDeleteThread()
+const ModalDeleteThread: React.FC<Props> = ({ id, title }) => {
+  const { deleteThread } = useThreads()
+
   const onDeleteThreadClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
       e.stopPropagation()
-      deleteThread(threadId)
+      deleteThread(id, title)
     },
-    [deleteThread, threadId]
+    [deleteThread, id, title]
   )
 
   return (
@@ -62,4 +66,4 @@ const ModalDeleteThread = ({ threadId }: Props) => {
   )
 }
 
-export default memo(ModalDeleteThread)
+export default React.memo(ModalDeleteThread)

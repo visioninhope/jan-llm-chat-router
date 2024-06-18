@@ -1,8 +1,9 @@
-import { memo, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 
-import { InferenceEngine, Model } from '@janhq/core'
-import { Badge, Button, Tooltip, useClickOutside } from '@janhq/joi'
-import { useAtom } from 'jotai'
+import { Model } from '@janhq/core'
+import { Badge, Button, useClickOutside } from '@janhq/joi'
+
+import { useAtomValue } from 'jotai'
 import {
   MoreVerticalIcon,
   PlayIcon,
@@ -11,44 +12,53 @@ import {
 } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 
+import { engineHasLogo } from '@/containers/ModelDropdown'
+
 import { useActiveModel } from '@/hooks/useActiveModel'
-import useDeleteModel from '@/hooks/useDeleteModel'
 
 import useModels from '@/hooks/useModels'
 
 import { toGibibytes } from '@/utils/converter'
 
-import { serverEnabledAtom } from '@/helpers/atoms/LocalServer.atom'
+import { activeModelsAtom } from '@/helpers/atoms/Model.atom'
 
 type Props = {
   model: Model
-  groupTitle?: string
 }
 
-const MyModelList = ({ model }: Props) => {
-  const { activeModel, startModel, stateModel } = useActiveModel()
+const ModelItem: React.FC<Props> = ({ model }) => {
+  const activeModels = useAtomValue(activeModelsAtom)
+  const { startModel, stateModel } = useActiveModel()
   const isActiveModel = stateModel.model?.id === model.id
-  const { deleteModel } = useDeleteModel()
   const [more, setMore] = useState(false)
-  const [serverEnabled, setServerEnabled] = useAtom(serverEnabledAtom)
-
-  const { stopModel } = useModels()
+  const { stopModel, deleteModel } = useModels()
 
   const [menu, setMenu] = useState<HTMLDivElement | null>(null)
   const [toggle, setToggle] = useState<HTMLDivElement | null>(null)
   useClickOutside(() => setMore(false), null, [menu, toggle])
 
-  const onModelActionClick = (modelId: string) => {
-    if (activeModel && activeModel.id === modelId) {
-      stopModel(activeModel.id)
-      window.core?.api?.stopServer()
-      setServerEnabled(false)
-    } else if (!serverEnabled) {
-      startModel(modelId)
-    }
-  }
+  const isModelActived = useMemo(() => {
+    return activeModels.map((m) => m.model).includes(model.id)
+  }, [activeModels, model.id])
 
-  const engineHasLogo = ['anthropic', 'cohere', 'martian', 'mistral', 'openai']
+  const onModelActionClick = useCallback(
+    (modelId: string) => {
+      if (isModelActived) {
+        stopModel(modelId)
+      } else {
+        startModel(modelId)
+      }
+    },
+    [isModelActived, startModel, stopModel]
+  )
+
+  const onDeleteModelClicked = useCallback(
+    async (modelId: string) => {
+      await stopModel(modelId)
+      await deleteModel(modelId)
+    },
+    [stopModel, deleteModel]
+  )
 
   return (
     <div className="border border-b-0 border-[hsla(var(--app-border))] bg-[hsla(var(--tertiary-bg))] p-4 first:rounded-t-lg last:rounded-b-lg last:border-b">
@@ -73,14 +83,14 @@ const MyModelList = ({ model }: Props) => {
             <h6
               className={twMerge(
                 'line-clamp-1 max-w-[200px] font-medium',
-                model.engine !== InferenceEngine.cortexLlamacpp &&
+                model.engine !== 'cortex.llamacpp' &&
                   'max-w-none text-[hsla(var(--text-secondary))]'
               )}
               title={model.id}
             >
               {model.id}
             </h6>
-            {model.engine === InferenceEngine.cortexLlamacpp && (
+            {model.engine === 'cortex.llamacpp' && (
               <div className="flex gap-x-8">
                 <p
                   className="line-clamp-1 max-w-[120px] text-[hsla(var(--text-secondary))] xl:max-w-none"
@@ -93,10 +103,10 @@ const MyModelList = ({ model }: Props) => {
           </div>
         </div>
 
-        {model.engine === InferenceEngine.cortexLlamacpp && (
+        {model.engine === 'cortex.llamacpp' && (
           <div className="flex gap-x-4">
             <Badge theme="secondary" className="sm:mr-16">
-              {toGibibytes(model.metadata.size)}
+              {toGibibytes(model.metadata?.size)}
             </Badge>
 
             <div className="flex items-center gap-x-4">
@@ -112,7 +122,7 @@ const MyModelList = ({ model }: Props) => {
                       : 'Stopping...'}
                   </span>
                 </Badge>
-              ) : activeModel && activeModel.id === model.id ? (
+              ) : isModelActived ? (
                 <Badge
                   theme="success"
                   variant="soft"
@@ -145,62 +155,38 @@ const MyModelList = ({ model }: Props) => {
                     className="absolute right-4 top-10 z-20 w-52 overflow-hidden rounded-lg border border-[hsla(var(--app-border))] bg-[hsla(var(--app-bg))] shadow-lg"
                     ref={setMenu}
                   >
-                    <Tooltip
-                      trigger={
-                        <div
-                          className={twMerge(
-                            'flex items-center space-x-2 px-4 py-2 hover:bg-[hsla(var(--dropdown-menu-hover-bg))]',
-                            serverEnabled &&
-                              activeModel &&
-                              activeModel.id !== model.id &&
-                              'pointer-events-none cursor-not-allowed opacity-40'
-                          )}
-                          onClick={() => {
-                            onModelActionClick(model.id)
-                            setMore(false)
-                          }}
-                        >
-                          {activeModel && activeModel.id === model.id ? (
-                            <StopCircleIcon
-                              size={16}
-                              className="text-[hsla(var(--text-secondary))]"
-                            />
-                          ) : (
-                            <PlayIcon
-                              size={16}
-                              className="text-[hsla(var(--text-secondary))]"
-                            />
-                          )}
-                          <span className="text-bold capitalize">
-                            {isActiveModel ? stateModel.state : 'Start'}
-                            &nbsp;Model
-                          </span>
-                        </div>
-                      }
-                      disabled={!serverEnabled}
-                      content={
-                        <span>
-                          {activeModel && activeModel.id === model.id
-                            ? 'The API server is running, change model will stop the server'
-                            : 'Threads are disabled while the server is running'}
-                        </span>
-                      }
-                    />
                     <div
                       className={twMerge(
-                        'flex cursor-pointer items-center space-x-2 px-4 py-2 hover:bg-[hsla(var(--dropdown-menu-hover-bg))]',
-                        serverEnabled &&
+                        'flex items-center space-x-2 px-4 py-2 hover:bg-[hsla(var(--dropdown-menu-hover-bg))]',
+                        !isModelActived &&
                           'pointer-events-none cursor-not-allowed opacity-40'
                       )}
                       onClick={() => {
-                        setTimeout(async () => {
-                          if (!serverEnabled) {
-                            await stopModel(model.id)
-                            deleteModel(model)
-                          }
-                        }, 500)
+                        onModelActionClick(model.id)
                         setMore(false)
                       }}
+                    >
+                      {isModelActived ? (
+                        <StopCircleIcon
+                          size={16}
+                          className="text-[hsla(var(--text-secondary))]"
+                        />
+                      ) : (
+                        <PlayIcon
+                          size={16}
+                          className="text-[hsla(var(--text-secondary))]"
+                        />
+                      )}
+                      <span className="text-bold capitalize">
+                        {isActiveModel ? stateModel.state : 'Start'}
+                        &nbsp;Model
+                      </span>
+                    </div>
+                    <div
+                      className={twMerge(
+                        'pointer-events-none flex cursor-pointer items-center space-x-2 px-4 py-2 opacity-40 hover:bg-[hsla(var(--dropdown-menu-hover-bg))]'
+                      )}
+                      onClick={() => onDeleteModelClicked(model.id)}
                     >
                       <Trash2Icon
                         size={16}
@@ -221,4 +207,4 @@ const MyModelList = ({ model }: Props) => {
   )
 }
 
-export default memo(MyModelList)
+export default memo(ModelItem)

@@ -2,8 +2,6 @@ import { useCallback, useMemo, useState } from 'react'
 
 import { useDropzone } from 'react-dropzone'
 
-import { InferenceEngine } from '@janhq/core'
-
 import { Button, ScrollArea } from '@janhq/joi'
 
 import { useAtomValue, useSetAtom } from 'jotai'
@@ -18,7 +16,7 @@ import SetupRemoteModel from '@/containers/SetupRemoteModel'
 import useDropModelBinaries from '@/hooks/useDropModelBinaries'
 import { setImportModelStageAtom } from '@/hooks/useImportModel'
 
-import MyModelList from './MyModelList'
+import ModelItem from './ModelItem'
 
 import { downloadedModelsAtom } from '@/helpers/atoms/Model.atom'
 
@@ -54,8 +52,7 @@ const MyModels = () => {
 
   const findByEngine = filteredDownloadedModels.map((x) => x.engine)
   const groupByEngine = findByEngine.filter(function (item, index) {
-    if (findByEngine.indexOf(item) === index)
-      return item !== InferenceEngine.cortexLlamacpp
+    if (findByEngine.indexOf(item) === index) return item !== 'cortex.llamacpp'
   })
 
   return (
@@ -98,7 +95,7 @@ const MyModels = () => {
 
           <div className="relative w-full">
             {filteredDownloadedModels.filter(
-              (x) => x.engine === InferenceEngine.cortexLlamacpp
+              (x) => x.engine === 'cortex.llamacpp'
             ).length !== 0 && (
               <div className="my-6">
                 <div className="flex flex-col items-start justify-start gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -106,9 +103,9 @@ const MyModels = () => {
                 </div>
                 <div className="mt-2">
                   {filteredDownloadedModels
-                    .filter((x) => x.engine === InferenceEngine.cortexLlamacpp)
+                    .filter((x) => x.engine === 'cortex.llamacpp')
                     .map((model) => (
-                      <MyModelList key={model.id} model={model} />
+                      <ModelItem key={model.id} model={model} />
                     ))}
                 </div>
               </div>
@@ -125,12 +122,10 @@ const MyModels = () => {
                   </div>
                   <div className="mt-2">
                     {filteredDownloadedModels
-                      ? filteredDownloadedModels
-                          .filter((x) => x.engine === engine)
-                          .map((model) => {
-                            return <MyModelList key={model.id} model={model} />
-                          })
-                      : null}
+                      .filter((x) => x.engine === engine)
+                      .map((model) => (
+                        <ModelItem key={model.id} model={model} />
+                      ))}
                   </div>
                 </div>
               )

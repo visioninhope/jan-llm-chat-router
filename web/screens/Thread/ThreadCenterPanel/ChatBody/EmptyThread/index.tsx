@@ -1,6 +1,6 @@
 import { memo } from 'react'
 
-import { InferenceEngine } from '@janhq/core'
+import { LocalEngines } from '@janhq/core'
 import { Button } from '@janhq/joi'
 import { useAtomValue, useSetAtom } from 'jotai'
 
@@ -16,7 +16,7 @@ const EmptyThread = () => {
   const setMainViewState = useSetAtom(mainViewStateAtom)
 
   const showOnboardingStep =
-    downloadedModels.filter((e) => e.engine.startsWith(InferenceEngine.cortex))
+    downloadedModels.filter((e) => LocalEngines.includes(e.engine ?? ''))
       .length === 0
 
   return (

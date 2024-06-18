@@ -97,11 +97,11 @@ export function useActiveModel() {
         loading: false,
         model,
       }))
-      toaster({
-        title: 'Success!',
-        description: `Model ${model.id} has been started.`,
-        type: 'success',
-      })
+      // toaster({
+      //   title: 'Success!',
+      //   description: `Model ${model.id} has been started.`,
+      //   type: 'success',
+      // })
     } catch (err) {
       setStateModel(() => ({
         state: 'start',
@@ -113,11 +113,11 @@ export function useActiveModel() {
         return Promise.reject(new Error('aborted'))
       }
 
-      toaster({
-        title: 'Failed!',
-        description: `Model ${model.id} failed to start.`,
-        type: 'error',
-      })
+      // toaster({
+      //   title: 'Failed!',
+      //   description: `Model ${model.id} failed to start.`,
+      //   type: 'error',
+      // })
       setLoadModelError(err)
       return Promise.reject(err)
     }

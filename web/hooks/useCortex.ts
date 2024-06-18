@@ -1,17 +1,21 @@
 import '@janhq/cortex-node/shims/web'
 import { useCallback } from 'react'
 
-import { Assistant, Model, ThreadMessage } from '@janhq/core'
+import {
+  Assistant,
+  Model,
+  Message,
+  Thread,
+  MessageCreateParams,
+  ChatCompletionMessageParam,
+} from '@janhq/core'
 
 import { Cortex } from '@janhq/cortex-node'
 
-import { ChatCompletionMessage } from '@janhq/cortex-node/dist/resources'
 import {
   AssistantCreateParams,
   AssistantUpdateParams,
 } from '@janhq/cortex-node/dist/resources/beta/assistants'
-import { MessageCreateParams } from '@janhq/cortex-node/dist/resources/beta/threads/messages'
-import { Thread } from '@janhq/cortex-node/dist/resources/beta/threads/threads'
 import { useAtomValue } from 'jotai'
 
 import { hostAtom } from '@/helpers/atoms/AppConfig.atom'
@@ -37,7 +41,18 @@ const useCortex = () => {
   const fetchThreads = useCallback(async () => {
     const threads: Thread[] = []
     for await (const thread of cortex.beta.threads.list()) {
-      threads.push(thread)
+      // @ts-expect-error each thread must have associated assistants
+      const assistants = thread['assistants'] as Assistant[]
+      if (!assistants || assistants.length === 0) continue
+
+      // @ts-expect-error each thread must have a title, else default to 'New Thread'
+      const title: string = thread['title'] ?? 'New Thread'
+
+      threads.push({
+        ...thread,
+        title: title,
+        assistants: assistants,
+      })
     }
     return threads
   }, [cortex.beta.threads])
@@ -52,7 +67,7 @@ const useCortex = () => {
 
   const fetchMessages = useCallback(
     async (threadId: string) => {
-      const messages: ThreadMessage[] = []
+      const messages: Message[] = []
       const response = await cortex.beta.threads.messages.list(threadId)
       response.data.forEach((message) => {
         messages.push(message)
@@ -77,7 +92,7 @@ const useCortex = () => {
   )
 
   const streamChatMessages = useCallback(
-    async (modelId: string, messages: ChatCompletionMessage[]) => {
+    async (modelId: string, messages: ChatCompletionMessageParam[]) => {
       const stream = await cortex.chat.completions.create({
         model: modelId,
         messages: messages,
@@ -114,7 +129,8 @@ const useCortex = () => {
 
   const updateThread = useCallback(
     async (thread: Thread) => {
-      await cortex.beta.threads.update(thread.id, thread)
+      const result = await cortex.beta.threads.update(thread.id, thread)
+      console.log(result)
     },
     [cortex.beta.threads]
   )
@@ -139,9 +155,15 @@ const useCortex = () => {
     [cortex.beta.threads]
   )
 
-  const createThread = useCallback(async () => {
-    return cortex.beta.threads.create()
-  }, [cortex.beta.threads])
+  const createThread = useCallback(
+    async (assistant: Assistant) => {
+      const thread: Thread = await cortex.beta.threads.create({
+        assistants: [assistant],
+      })
+      return thread
+    },
+    [cortex.beta.threads]
+  )
 
   const updateModel = useCallback(
     async (modelId: string, options: Record<string, unknown>) => {

@@ -1,18 +1,18 @@
-import { Fragment } from 'react'
+import { Button, Badge } from '@janhq/joi'
 
-import { Tooltip, Button, Badge } from '@janhq/joi'
-
-import { useActiveModel } from '@/hooks/useActiveModel'
+import { useAtomValue } from 'jotai'
 
 import useModels from '@/hooks/useModels'
 
 import { toGibibytes } from '@/utils/converter'
 
+import { activeModelsAtom } from '@/helpers/atoms/Model.atom'
+
 const Column = ['Name', 'Size', '']
 
-const TableActiveModel = () => {
+const TableActiveModel: React.FC = () => {
   const { stopModel } = useModels()
-  const { activeModel, stateModel } = useActiveModel()
+  const activeModels = useAtomValue(activeModelsAtom)
 
   return (
     <div className="m-4 mr-0 w-1/2">
@@ -32,45 +32,35 @@ const TableActiveModel = () => {
               })}
             </tr>
           </thead>
-          {activeModel && (
-            <Fragment>
-              <tbody>
+          {activeModels.map((model) => {
+            return (
+              <tbody key={model.model}>
                 <tr>
                   <td
                     className="max-w-[200px] px-4 py-2 font-bold"
-                    title={activeModel.name}
+                    title={model.model}
                   >
-                    <p className="line-clamp-2">{activeModel.name}</p>
+                    <p className="line-clamp-2">{model.model}</p>
                   </td>
                   <td className="px-4 py-2">
                     <Badge theme="secondary">
-                      {toGibibytes(activeModel.metadata.size)}
+                      {toGibibytes(model.metadata?.size)}
                     </Badge>
                   </td>
                   <td className="px-4 py-2 text-center">
-                    <Tooltip
-                      trigger={
-                        <Button
-                          theme={
-                            stateModel.state === 'stop'
-                              ? 'destructive'
-                              : 'primary'
-                          }
-                          onClick={() => {
-                            stopModel(activeModel.id)
-                          }}
-                        >
-                          Stop
-                        </Button>
-                      }
-                      content="The API server is running, stop the model will
-                      also stop the server"
-                    />
+                    <Button
+                      theme="destructive"
+                      onClick={() => {
+                        stopModel(model.model)
+                      }}
+                    >
+                      Stop
+                    </Button>
                   </td>
                 </tr>
               </tbody>
-            </Fragment>
-          )}
+            )
+          })}
         </table>
       </div>
     </div>

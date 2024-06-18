@@ -18,7 +18,8 @@ import { toaster } from '@/containers/Toast'
 import { MainViewState } from '@/constants/screens'
 
 import useCortex from '@/hooks/useCortex'
-import { useCreateNewThread } from '@/hooks/useCreateNewThread'
+
+import useThreads from '@/hooks/useThreads'
 
 import { toGibibytes } from '@/utils/converter'
 
@@ -37,7 +38,7 @@ type Props = {
 const ModelItemHeader: React.FC<Props> = ({ model, onClick, open }) => {
   const { downloadModel } = useCortex()
   const downloadedModels = useAtomValue(downloadedModelsAtom)
-  const { requestCreateNewThread } = useCreateNewThread()
+  const { createThread } = useThreads()
   const setMainViewState = useSetAtom(mainViewStateAtom)
 
   const serverEnabled = useAtomValue(serverEnabledAtom)
@@ -67,14 +68,14 @@ const ModelItemHeader: React.FC<Props> = ({ model, onClick, open }) => {
     if (assistants.length === 0) {
       toaster({
         title: 'No assistant available.',
-        description: `Could not use Model ${model.name} as no assistant is available.`,
+        description: `Could not use Model ${model.id} as no assistant is available.`,
         type: 'error',
       })
       return
     }
-    await requestCreateNewThread(assistants[0], model)
+    await createThread(model.id, assistants[0])
     setMainViewState(MainViewState.Thread)
-  }, [assistants, model, requestCreateNewThread, setMainViewState])
+  }, [assistants, model, createThread, setMainViewState])
 
   if (isDownloaded) {
     downloadButton = (

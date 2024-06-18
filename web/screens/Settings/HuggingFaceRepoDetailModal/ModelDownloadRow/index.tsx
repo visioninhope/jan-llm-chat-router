@@ -1,16 +1,17 @@
 import { useCallback, useMemo } from 'react'
 
 import { HuggingFaceRepoData, Model, Quantization } from '@janhq/core'
-import { Badge, Button, Progress } from '@janhq/joi'
+import { Badge, Button } from '@janhq/joi'
 
 import { useAtomValue, useSetAtom } from 'jotai'
 
 import { MainViewState } from '@/constants/screens'
 
 import useCortex from '@/hooks/useCortex'
-import { useCreateNewThread } from '@/hooks/useCreateNewThread'
 
-import { formatDownloadPercentage, toGibibytes } from '@/utils/converter'
+import useThreads from '@/hooks/useThreads'
+
+import { toGibibytes } from '@/utils/converter'
 
 import { mainViewStateAtom } from '@/helpers/atoms/App.atom'
 import { assistantsAtom } from '@/helpers/atoms/Assistant.atom'
@@ -40,7 +41,7 @@ const ModelDownloadRow: React.FC<Props> = ({
   const downloadedModels = useAtomValue(downloadedModelsAtom)
   const { downloadModel, abortDownload } = useCortex()
 
-  const { requestCreateNewThread } = useCreateNewThread()
+  const { createThread } = useThreads()
   const setMainViewState = useSetAtom(mainViewStateAtom)
   const assistants = useAtomValue(assistantsAtom)
   const isDownloaded = downloadedModels.find((md) => md.id === fileName) != null
@@ -55,12 +56,11 @@ const ModelDownloadRow: React.FC<Props> = ({
 
     const model: Model = {
       ...defaultModel,
-      sources: [
-        {
-          url: downloadUrl,
-          filename: fileName,
-        },
-      ],
+      files: {
+        url: downloadUrl,
+        filename: fileName,
+      },
+
       id: fileName,
       name: fileName,
       created: Date.now(),
@@ -75,7 +75,7 @@ const ModelDownloadRow: React.FC<Props> = ({
 
   const onAbortDownloadClick = useCallback(() => {
     if (!model) return
-    abortDownload(model)
+    abortDownload(model.id)
   }, [model, abortDownload])
 
   const onDownloadClick = useCallback(async () => {
@@ -88,16 +88,11 @@ const ModelDownloadRow: React.FC<Props> = ({
       alert('No assistant available')
       return
     }
-    await requestCreateNewThread(assistants[0], model)
+    if (!model) return
+    await createThread(model.id, assistants[0])
     setMainViewState(MainViewState.Thread)
     setHfImportingStage('NONE')
-  }, [
-    assistants,
-    model,
-    requestCreateNewThread,
-    setMainViewState,
-    setHfImportingStage,
-  ])
+  }, [assistants, model, createThread, setMainViewState, setHfImportingStage])
 
   if (!model) {
     return null

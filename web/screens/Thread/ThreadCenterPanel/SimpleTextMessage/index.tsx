@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 
-import { ContentType, ThreadMessage } from '@janhq/core'
+import { ContentType, Message } from '@janhq/core'
 
 import { Tooltip } from '@janhq/joi'
 import hljs from 'highlight.js'
@@ -35,7 +35,7 @@ import {
 } from '@/helpers/atoms/ChatMessage.atom'
 import { activeThreadAtom } from '@/helpers/atoms/Thread.atom'
 
-const SimpleTextMessage: React.FC<ThreadMessage> = (props) => {
+const SimpleTextMessage: React.FC<Message> = (props) => {
   let text = ''
   const isUser = props.role === 'user'
   const editMessage = useAtomValue(editMessageAtom)
@@ -222,7 +222,7 @@ const SimpleTextMessage: React.FC<ThreadMessage> = (props) => {
             </div>
           )}
 
-          {props.content[0]?.type === ContentType.Pdf && (
+          {/* {props.content[0]?.type === ContentType.Pdf && (
             <div className="group/file bg-secondary relative mb-2 inline-flex w-60 cursor-pointer gap-x-3 overflow-hidden rounded-lg p-4">
               <div
                 className="absolute left-0 top-0 z-20 hidden h-full w-full bg-black/20 backdrop-blur-sm group-hover/file:inline-block"
@@ -251,7 +251,7 @@ const SimpleTextMessage: React.FC<ThreadMessage> = (props) => {
                 </p>
               </div>
             </div>
-          )}
+          )} */}
 
           {isUser ? (
             <>

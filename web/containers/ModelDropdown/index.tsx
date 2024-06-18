@@ -1,9 +1,9 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 
-import { InferenceEngine } from '@janhq/core'
+import { LlmEngine, LocalEngines, Model, RemoteEngines } from '@janhq/core'
 import { Badge, Input, ScrollArea, Select, useClickOutside } from '@janhq/joi'
 
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { useAtomValue } from 'jotai'
 
 import { ChevronDownIcon, DownloadCloudIcon, XIcon } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
@@ -16,7 +16,7 @@ import useCortex from '@/hooks/useCortex'
 
 import useRecommendedModel from '@/hooks/useRecommendedModel'
 
-import useUpdateModelParameters from '@/hooks/useUpdateModelParameters'
+import useSelectModel from '@/hooks/useSelectModel'
 
 import { toGibibytes } from '@/utils/converter'
 
@@ -25,38 +25,41 @@ import {
   configuredModelsAtom,
   selectedModelAtom,
 } from '@/helpers/atoms/Model.atom'
-import {
-  activeThreadAtom,
-  setThreadModelParamsAtom,
-} from '@/helpers/atoms/Thread.atom'
+import { activeThreadAtom } from '@/helpers/atoms/Thread.atom'
 
 type Props = {
   chatInputMode?: boolean
   strictedThread?: boolean
-  disabled?: boolean
 }
 
-const engineHasLogo = ['anthropic', 'cohere', 'martian', 'mistral', 'openai']
+export const engineHasLogo = [
+  'anthropic',
+  'cohere',
+  'martian',
+  'mistral',
+  'openai',
+]
 
-const ModelDropdown = ({
-  disabled,
+const ModelDropdown: React.FC<Props> = ({
   chatInputMode,
   strictedThread = true,
-}: Props) => {
+}) => {
   const { downloadModel } = useCortex()
   const [searchFilter, setSearchFilter] = useState('all')
   const [filterOptionsOpen, setFilterOptionsOpen] = useState(false)
   const [searchText, setSearchText] = useState('')
+
   const [open, setOpen] = useState(false)
   const activeThread = useAtomValue(activeThreadAtom)
   const [toggle, setToggle] = useState<HTMLDivElement | null>(null)
-  const [selectedModel, setSelectedModel] = useAtom(selectedModelAtom)
+  const selectedModel = useAtomValue(selectedModelAtom)
+
+  const { selectModel } = useSelectModel()
+
   const { recommendedModel, downloadedModels } = useRecommendedModel()
   const [dropdownOptions, setDropdownOptions] = useState<HTMLDivElement | null>(
     null
   )
-  const setThreadModelParams = useSetAtom(setThreadModelParamsAtom)
-  const { updateModelParameter } = useUpdateModelParameters()
 
   const configuredModels = useAtomValue(configuredModelsAtom)
   const featuredModel = configuredModels.filter((x) =>
@@ -75,20 +78,16 @@ const ModelDropdown = ({
           e.id.toLowerCase().includes(searchText.toLowerCase().trim())
         )
         .filter((e) => {
+          const engine = e.engine
+          if (!engine) return false
           if (searchFilter === 'all') {
-            return e.engine
+            return engine
           }
           if (searchFilter === 'local') {
-            return (
-              e.engine === InferenceEngine.cortexLlamacpp ||
-              e.engine === InferenceEngine.nitro_tensorrt_llm
-            )
+            return LocalEngines.includes(engine)
           }
           if (searchFilter === 'remote') {
-            return (
-              e.engine !== InferenceEngine.cortexLlamacpp &&
-              e.engine !== InferenceEngine.nitro_tensorrt_llm
-            )
+            return RemoteEngines.includes(engine)
           }
         })
         .sort((a, b) => a.id.localeCompare(b.id)),
@@ -103,48 +102,16 @@ const ModelDropdown = ({
     if (!model) {
       model = recommendedModel
     }
-    setSelectedModel(model)
-  }, [recommendedModel, activeThread, downloadedModels, setSelectedModel])
+    if (!model) return
+    selectModel(model)
+  }, [recommendedModel, activeThread, downloadedModels, selectModel])
 
-  const onClickModelItem = useCallback(
-    async (modelId: string) => {
-      const model = downloadedModels.find((m) => m.id === modelId)
-      setSelectedModel(model)
+  const onModelSelected = useCallback(
+    async (model: Model) => {
+      selectModel(model)
       setOpen(false)
-
-      if (activeThread) {
-        // Default setting ctx_len for the model for a better onboarding experience
-        // TODO: When Cortex support hardware instructions, we should remove this
-        const overriddenSettings =
-          model?.settings.ctx_len && model.settings.ctx_len > 2048
-            ? { ctx_len: 2048 }
-            : {}
-
-        const modelParams = {
-          ...model?.parameters,
-          ...model?.settings,
-          ...overriddenSettings,
-        }
-
-        // Update model parameter to the thread state
-        setThreadModelParams(activeThread.id, modelParams)
-
-        // Update model parameter to the thread file
-        if (model)
-          updateModelParameter(activeThread, {
-            params: modelParams,
-            modelId: model.id,
-            engine: model.engine,
-          })
-      }
     },
-    [
-      downloadedModels,
-      activeThread,
-      setSelectedModel,
-      setThreadModelParams,
-      updateModelParameter,
-    ]
+    [selectModel]
   )
 
   const [extensionHasSettings, setExtensionHasSettings] = useState<
@@ -158,8 +125,7 @@ const ModelDropdown = ({
     .map((x) => x.engine)
 
   const groupByEngine = findByEngine.filter(function (item, index) {
-    if (findByEngine.indexOf(item) === index)
-      return item !== InferenceEngine.cortexLlamacpp
+    if (findByEngine.indexOf(item) === index) return item !== 'cortex.llamacpp'
   })
 
   if (strictedThread && !activeThread) {
@@ -167,7 +133,7 @@ const ModelDropdown = ({
   }
 
   return (
-    <div className={twMerge('relative', disabled && 'pointer-events-none')}>
+    <div className={twMerge('relative')}>
       <div ref={setToggle}>
         {chatInputMode ? (
           <Badge
@@ -181,7 +147,6 @@ const ModelDropdown = ({
           <Input
             value={selectedModel?.id || ''}
             className="cursor-pointer"
-            disabled={disabled}
             readOnly
             suffixIcon={
               <ChevronDownIcon
@@ -239,7 +204,7 @@ const ModelDropdown = ({
           </div>
           <ScrollArea className="h-[calc(100%-36px)] w-full">
             {filteredDownloadedModels.filter(
-              (x) => x.engine === InferenceEngine.cortexLlamacpp
+              (x) => x.engine === 'cortex.llamacpp'
             ).length !== 0 ? (
               <div className="relative w-full">
                 <div className="mt-2">
@@ -248,15 +213,13 @@ const ModelDropdown = ({
                   </h6>
                   <ul className="pb-2">
                     {filteredDownloadedModels
-                      .filter(
-                        (x) => x.engine === InferenceEngine.cortexLlamacpp
-                      )
+                      .filter((x) => x.engine === 'cortex.llamacpp')
                       .map((model) => {
                         return (
                           <li
                             key={model.id}
                             className="flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-[hsla(var(--dropdown-menu-hover-bg))]"
-                            onClick={() => onClickModelItem(model.id)}
+                            onClick={() => onModelSelected(model)}
                           >
                             <p className="line-clamp-1" title={model.id}>
                               {model.id}
@@ -302,7 +265,7 @@ const ModelDropdown = ({
                                 </div>
                                 <div className="flex items-center gap-2 text-[hsla(var(--text-tertiary))]">
                                   <span className="font-medium">
-                                    {toGibibytes(model.metadata.size)}
+                                    {toGibibytes(model.metadata?.size)}
                                   </span>
                                   {!isDownloading && (
                                     <DownloadCloudIcon
@@ -319,9 +282,7 @@ const ModelDropdown = ({
                       ) : (
                         <ul className="pb-2">
                           {configuredModels
-                            .filter(
-                              (x) => x.engine === InferenceEngine.cortexLlamacpp
-                            )
+                            .filter((x) => x.engine === 'cortex.llamacpp')
                             .filter((e) =>
                               e.id
                                 .toLowerCase()
@@ -351,13 +312,13 @@ const ModelDropdown = ({
                                   </div>
                                   <div className="flex items-center gap-2 text-[hsla(var(--text-tertiary))]">
                                     <span className="font-medium">
-                                      {toGibibytes(model.metadata.size)}
+                                      {toGibibytes(model.metadata?.size)}
                                     </span>
                                     {!isDownloading && (
                                       <DownloadCloudIcon
                                         size={18}
                                         className="cursor-pointer text-[hsla(var(--app-link))]"
-                                        onClick={() => downloadModel(model)}
+                                        onClick={() => downloadModel(model.id)}
                                       />
                                     )}
                                   </div>
@@ -400,17 +361,15 @@ const ModelDropdown = ({
                               className={twMerge(
                                 'cursor-pointer px-3 py-2 hover:bg-[hsla(var(--dropdown-menu-hover-bg))]',
                                 !apiKey &&
-                                  model.engine !==
-                                    InferenceEngine.nitro_tensorrt_llm &&
+                                  model.engine !== 'cortex.tensorrt' &&
                                   'cursor-default text-[hsla(var(--text-tertiary))]'
                               )}
                               onClick={() => {
                                 if (
                                   apiKey ||
-                                  model.engine ===
-                                    InferenceEngine.nitro_tensorrt_llm
+                                  model.engine === 'cortex.tensorrt'
                                 ) {
-                                  onClickModelItem(model.id)
+                                  onModelSelected(model)
                                 }
                               }}
                             >

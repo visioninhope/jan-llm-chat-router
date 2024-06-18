@@ -28,7 +28,7 @@ import { currentPromptAtom, fileUploadAtom } from '@/containers/Providers/Jotai'
 
 import { useActiveModel } from '@/hooks/useActiveModel'
 
-import useSendChatMessage from '@/hooks/useSendChatMessage'
+import useSendMessage from '@/hooks/useSendMessage'
 
 import FileUploadPreview from '../FileUploadPreview'
 import ImageUploadPreview from '../ImageUploadPreview'
@@ -51,7 +51,7 @@ const ChatInput = () => {
   const [activeSetting, setActiveSetting] = useState(false)
 
   const [currentPrompt, setCurrentPrompt] = useAtom(currentPromptAtom)
-  const { sendChatMessage } = useSendChatMessage()
+  const { sendMessage } = useSendMessage()
 
   const activeThreadId = useAtomValue(getActiveThreadIdAtom)
   const [isWaitingToSend, setIsWaitingToSend] = useAtom(waitingToSendMessage)
@@ -79,14 +79,14 @@ const ChatInput = () => {
   useEffect(() => {
     if (isWaitingToSend && activeThreadId) {
       setIsWaitingToSend(false)
-      sendChatMessage(currentPrompt)
+      sendMessage(currentPrompt)
     }
   }, [
     activeThreadId,
     isWaitingToSend,
     currentPrompt,
     setIsWaitingToSend,
-    sendChatMessage,
+    sendMessage,
   ])
 
   useEffect(() => {
@@ -108,7 +108,7 @@ const ChatInput = () => {
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault()
       if (messages[messages.length - 1]?.status !== 'in_progress')
-        sendChatMessage(currentPrompt)
+        sendMessage(currentPrompt)
       else onStopInferenceClick()
     }
   }
@@ -144,6 +144,8 @@ const ChatInput = () => {
     }
   }
 
+  const isVisionModel = false
+
   return (
     <div className="relative p-4 pb-2">
       <div className="relative flex w-full flex-col">
@@ -175,7 +177,7 @@ const ChatInput = () => {
                     fileUpload.length > 0 ||
                     (activeThread?.assistants[0].tools &&
                       !activeThread?.assistants[0].tools[0]?.enabled &&
-                      !activeThread?.assistants[0].model.settings.vision_model)
+                      !isVisionModel)
                   ) {
                     e.stopPropagation()
                   } else {
@@ -198,8 +200,7 @@ const ChatInput = () => {
                 {fileUpload.length > 0 ||
                   (activeThread?.assistants[0].tools &&
                     !activeThread?.assistants[0].tools[0]?.enabled &&
-                    !activeThread?.assistants[0].model.settings
-                      .vision_model && (
+                    !isVisionModel && (
                       <>
                         {fileUpload.length !== 0 && (
                           <span>
@@ -236,14 +237,12 @@ const ChatInput = () => {
                   <li
                     className={twMerge(
                       'text-[hsla(var(--text-secondary)] hover:bg-secondary flex w-full items-center space-x-2 px-4 py-2 hover:bg-[hsla(var(--dropdown-menu-hover-bg))]',
-                      activeThread?.assistants[0].model.settings.vision_model
+                      isVisionModel
                         ? 'cursor-pointer'
                         : 'cursor-not-allowed opacity-50'
                     )}
                     onClick={() => {
-                      if (
-                        activeThread?.assistants[0].model.settings.vision_model
-                      ) {
+                      if (isVisionModel) {
                         imageInputRef.current?.click()
                         setShowAttacmentMenus(false)
                       }
@@ -254,9 +253,7 @@ const ChatInput = () => {
                   </li>
                 }
                 content="This feature only supports multimodal models."
-                disabled={
-                  activeThread?.assistants[0].model.settings.vision_model
-                }
+                disabled={isVisionModel}
               />
               <Tooltip
                 side="bottom"
@@ -338,7 +335,7 @@ const ChatInput = () => {
                     }
                     className="h-8 w-8 rounded-lg p-0"
                     data-testid="btn-send-chat"
-                    onClick={() => sendChatMessage(currentPrompt)}
+                    onClick={() => sendMessage(currentPrompt)}
                   >
                     <svg
                       width="16"

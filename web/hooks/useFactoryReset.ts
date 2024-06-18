@@ -3,10 +3,10 @@ import { useCallback } from 'react'
 import { fs, AppConfiguration } from '@janhq/core'
 import { atom, useAtomValue, useSetAtom } from 'jotai'
 
-import { activeModelAtom } from './useActiveModel'
 import useModels from './useModels'
 
 import { defaultJanDataFolderAtom } from '@/helpers/atoms/App.atom'
+import { activeModelsAtom } from '@/helpers/atoms/Model.atom'
 
 export enum FactoryResetState {
   Idle = 'idle',
@@ -18,9 +18,9 @@ export enum FactoryResetState {
 
 export const factoryResetStateAtom = atom(FactoryResetState.Idle)
 
-export default function useFactoryReset() {
+const useFactoryReset = () => {
   const defaultJanDataFolder = useAtomValue(defaultJanDataFolderAtom)
-  const activeModel = useAtomValue(activeModelAtom)
+  const activeModels = useAtomValue(activeModelsAtom)
 
   const { stopModel } = useModels()
   const setFactoryResetState = useSetAtom(factoryResetStateAtom)
@@ -48,9 +48,10 @@ export default function useFactoryReset() {
       }
 
       setFactoryResetState(FactoryResetState.StoppingModel)
-      if (activeModel) {
-        await stopModel(activeModel.id)
+      for (const { model } of activeModels) {
+        await stopModel(model)
       }
+
       await new Promise((resolve) => setTimeout(resolve, 4000))
 
       setFactoryResetState(FactoryResetState.DeletingData)
@@ -62,10 +63,12 @@ export default function useFactoryReset() {
 
       await window.core?.api?.relaunch()
     },
-    [defaultJanDataFolder, activeModel, stopModel, setFactoryResetState]
+    [defaultJanDataFolder, activeModels, stopModel, setFactoryResetState]
   )
 
   return {
     resetAll,
   }
 }
+
+export default useFactoryReset

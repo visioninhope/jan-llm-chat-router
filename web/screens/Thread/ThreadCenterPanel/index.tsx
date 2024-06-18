@@ -16,7 +16,6 @@ import { fileUploadAtom } from '@/containers/Providers/Jotai'
 import { snackbar } from '@/containers/Toast'
 
 import { activeModelAtom } from '@/hooks/useActiveModel'
-import { queuedMessageAtom } from '@/hooks/useSendChatMessage'
 
 import ChatBody from '@/screens/Thread/ThreadCenterPanel/ChatBody'
 
@@ -25,6 +24,7 @@ import ChatInput from './ChatInput'
 import RequestDownloadModel from './RequestDownloadModel'
 
 import { experimentalFeatureEnabledAtom } from '@/helpers/atoms/AppConfig.atom'
+import { queuedMessageAtom } from '@/helpers/atoms/ChatMessage.atom'
 import { downloadedModelsAtom } from '@/helpers/atoms/Model.atom'
 import { activeThreadAtom } from '@/helpers/atoms/Thread.atom'
 

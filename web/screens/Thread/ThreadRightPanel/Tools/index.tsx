@@ -1,11 +1,9 @@
-import { Fragment, useCallback, useEffect } from 'react'
+import { Fragment, useCallback } from 'react'
 
 import { Tooltip, Switch, Input } from '@janhq/joi'
-import { useAtom, useAtomValue } from 'jotai'
+import { useAtomValue } from 'jotai'
 
 import { InfoIcon } from 'lucide-react'
-
-import useRecommendedModel from '@/hooks/useRecommendedModel'
 
 import AssistantSetting from '@/screens/Thread/ThreadCenterPanel/AssistantSetting'
 
@@ -18,25 +16,13 @@ import { activeThreadAtom } from '@/helpers/atoms/Thread.atom'
 const Tools = () => {
   const experimentalFeature = useAtomValue(experimentalFeatureEnabledAtom)
   const activeThread = useAtomValue(activeThreadAtom)
-  const [selectedModel, setSelectedModel] = useAtom(selectedModelAtom)
-  const { recommendedModel, downloadedModels } = useRecommendedModel()
+  const selectedModel = useAtomValue(selectedModelAtom)
 
   const componentDataAssistantSetting = getConfigurationsData(
     (activeThread?.assistants[0]?.tools &&
       activeThread?.assistants[0]?.tools[0]?.settings) ??
       {}
   )
-
-  useEffect(() => {
-    if (!activeThread) return
-    let model = downloadedModels.find(
-      (model) => model.id === activeThread.assistants[0].model.id
-    )
-    if (!model) {
-      model = recommendedModel
-    }
-    setSelectedModel(model)
-  }, [recommendedModel, activeThread, downloadedModels, setSelectedModel])
 
   const onRetrievalSwitchUpdate = useCallback(
     (enabled: boolean) => {

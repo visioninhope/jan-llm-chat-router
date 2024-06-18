@@ -1,5 +1,7 @@
-import { ImportingModel, Model } from '@janhq/core'
+import { ImportingModel, Model, ModelStatus } from '@janhq/core'
 import { atom } from 'jotai'
+
+import { activeThreadAtom } from './Thread.atom'
 
 export const stateModel = atom({ state: 'start', loading: false, model: '' })
 export const activeAssistantModelAtom = atom<Model | undefined>(undefined)
@@ -106,3 +108,13 @@ export const updateImportingModelAtom = atom(
 )
 
 export const selectedModelAtom = atom<Model | undefined>(undefined)
+
+export const updateSelectedModelAtom = atom(null, (get, set, model: Model) => {
+  const activeThread = get(activeThreadAtom)
+  if (!activeThread) return
+  activeThread.assistants[0].model = model.id
+
+  set(selectedModelAtom, model)
+})
+
+export const activeModelsAtom = atom<ModelStatus[]>([])

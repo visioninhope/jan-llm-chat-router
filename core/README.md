@@ -49,7 +49,7 @@ import * as node from "@janhq/core/node";
           };
 
           // Modify message and send out
-          const outGoingMessage: ThreadMessage = {
+          const outGoingMessage: Message = {
             ...incomingMessage,
             content
           };

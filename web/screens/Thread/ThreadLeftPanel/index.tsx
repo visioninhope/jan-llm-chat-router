@@ -16,9 +16,9 @@ import { twMerge } from 'tailwind-merge'
 import LeftPanelContainer from '@/containers/LeftPanelContainer'
 import { toaster } from '@/containers/Toast'
 
-import { useCreateNewThread } from '@/hooks/useCreateNewThread'
 import useRecommendedModel from '@/hooks/useRecommendedModel'
-import useSetActiveThread from '@/hooks/useSetActiveThread'
+
+import useThreads from '@/hooks/useThreads'
 
 import ModalCleanThread from './ModalCleanThread'
 import ModalDeleteThread from './ModalDeleteThread'
@@ -27,20 +27,22 @@ import ModalEditTitleThread from './ModalEditTitleThread'
 import { assistantsAtom } from '@/helpers/atoms/Assistant.atom'
 import { editMessageAtom } from '@/helpers/atoms/ChatMessage.atom'
 
+import { selectedModelAtom } from '@/helpers/atoms/Model.atom'
 import { getActiveThreadIdAtom, threadsAtom } from '@/helpers/atoms/Thread.atom'
 
-const ThreadLeftPanel = () => {
+const ThreadLeftPanel: React.FC = () => {
+  const { createThread, setActiveThread } = useThreads()
+  const selectedModel = useAtomValue(selectedModelAtom)
+
   const threads = useAtomValue(threadsAtom)
   const activeThreadId = useAtomValue(getActiveThreadIdAtom)
-  const { setActiveThread } = useSetActiveThread()
   const assistants = useAtomValue(assistantsAtom)
-  const { requestCreateNewThread: createNewThread } = useCreateNewThread()
   const setEditMessage = useSetAtom(editMessageAtom)
   const { recommendedModel, downloadedModels } = useRecommendedModel()
 
   const onThreadClick = useCallback(
     (thread: Thread) => {
-      setActiveThread(thread)
+      setActiveThread(thread.id)
       setEditMessage('')
     },
     [setActiveThread, setEditMessage]
@@ -58,12 +60,12 @@ const ThreadLeftPanel = () => {
       (recommendedModel || downloadedModels[0])
     ) {
       const model = recommendedModel || downloadedModels[0]
-      createNewThread(assistants[0], model)
+      createThread(model.id, assistants[0])
     } else if (!activeThreadId && threads.length > 0) {
-      setActiveThread(threads[0])
+      setActiveThread(threads[0].id)
     }
   }, [
-    createNewThread,
+    createThread,
     setActiveThread,
     assistants,
     threads,
@@ -79,10 +81,11 @@ const ThreadLeftPanel = () => {
         description: `Could not create a new thread. Please add an assistant.`,
         type: 'error',
       })
-    } else {
-      createNewThread(assistants[0])
+      return
     }
-  }, [createNewThread, assistants])
+    if (!selectedModel) return
+    createThread(selectedModel.id, assistants[0])
+  }, [createThread, selectedModel, assistants])
 
   return (
     <LeftPanelContainer>
@@ -139,7 +142,7 @@ const ThreadLeftPanel = () => {
                 <div className="invisible absolute -right-1 z-50 w-40 overflow-hidden rounded-lg border border-[hsla(var(--app-border))] bg-[hsla(var(--app-bg))] shadow-lg group-hover/icon:visible">
                   <ModalEditTitleThread thread={thread} />
                   <ModalCleanThread threadId={thread.id} />
-                  <ModalDeleteThread threadId={thread.id} />
+                  <ModalDeleteThread id={thread.id} title={thread.title} />
                 </div>
               </div>
               {activeThreadId === thread.id && (

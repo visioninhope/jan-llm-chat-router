@@ -6,7 +6,6 @@ import { AppConfiguration, getUserHomePath, joinPath } from '@janhq/core'
 import { useSetAtom } from 'jotai'
 
 import useAssistants from '@/hooks/useAssistants'
-import useGetSystemResources from '@/hooks/useGetSystemResources'
 import { useLoadTheme } from '@/hooks/useLoadTheme'
 import useModels from '@/hooks/useModels'
 import useThreads from '@/hooks/useThreads'
@@ -30,7 +29,6 @@ const DataLoader: React.FC = () => {
   const { getThreadList } = useThreads()
   const { getModels } = useModels()
 
-  useGetSystemResources()
   useLoadTheme()
 
   useEffect(() => {

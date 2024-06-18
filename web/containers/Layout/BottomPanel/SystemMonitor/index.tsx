@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useState } from 'react'
 
 import { Progress } from '@janhq/joi'
 import { useClickOutside } from '@janhq/joi'
@@ -6,8 +6,6 @@ import { useAtom, useAtomValue } from 'jotai'
 import { MonitorIcon, XIcon, ChevronDown, ChevronUp } from 'lucide-react'
 
 import { twMerge } from 'tailwind-merge'
-
-import useGetSystemResources from '@/hooks/useGetSystemResources'
 
 import { toGibibytes } from '@/utils/converter'
 
@@ -39,7 +37,6 @@ const SystemMonitor = () => {
   )
   const reduceTransparent = useAtomValue(reduceTransparentAtom)
 
-  const { watch, stopWatching } = useGetSystemResources()
   useClickOutside(
     () => {
       setShowSystemMonitorPanel(false)
@@ -48,16 +45,6 @@ const SystemMonitor = () => {
     null,
     [control, elementExpand]
   )
-
-  useEffect(() => {
-    // Watch for resource update
-    watch()
-
-    return () => {
-      stopWatching()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   return (
     <Fragment>

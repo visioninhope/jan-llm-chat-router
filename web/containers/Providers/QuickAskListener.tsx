@@ -4,17 +4,17 @@ import { useDebouncedCallback } from 'use-debounce'
 
 import { MainViewState } from '@/constants/screens'
 
-import useSendChatMessage from '@/hooks/useSendChatMessage'
+import useSendMessage from '@/hooks/useSendMessage'
 
 import { mainViewStateAtom } from '@/helpers/atoms/App.atom'
 
 const QuickAskListener: React.FC = () => {
-  const { sendChatMessage } = useSendChatMessage()
+  const { sendMessage } = useSendMessage()
   const setMainState = useSetAtom(mainViewStateAtom)
 
   const debounced = useDebouncedCallback((value) => {
     setMainState(MainViewState.Thread)
-    sendChatMessage(value)
+    sendMessage(value)
   }, 300)
 
   window.electronAPI?.onUserSubmitQuickAsk((_event: string, input: string) => {

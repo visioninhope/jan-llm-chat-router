@@ -2,9 +2,16 @@ import {
   AssistantTool as OpenAiAssistantTool,
   Assistant as OpenAiAssistant,
 } from 'openai/resources/beta/assistants'
-
-export type AssistantTool = OpenAiAssistantTool & { enabled?: boolean }
+import { AssistantResponseFormatOption as OpenAIAssistantResponseFormatOption } from 'openai/resources/beta/threads/threads'
 
 export interface Assistant extends OpenAiAssistant {
   avatar?: string
+}
+
+export type AssistantResponseFormatOption = OpenAIAssistantResponseFormatOption
+
+export interface AssistantToolResources extends OpenAiAssistant.ToolResources {}
+
+export type AssistantTool = OpenAiAssistantTool & {
+  enabled?: boolean
 }

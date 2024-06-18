@@ -1,45 +1,87 @@
 import { useCallback } from 'react'
 
+import { Assistant } from '@janhq/core'
 import { useSetAtom } from 'jotai'
+
+import { toaster } from '@/containers/Toast'
 
 import useCortex from './useCortex'
 
+import { deleteChatMessageAtom as deleteChatMessagesAtom } from '@/helpers/atoms/ChatMessage.atom'
+
+import { setThreadMessagesAtom } from '@/helpers/atoms/ChatMessage.atom'
 import {
-  ModelParams,
-  threadModelParamsAtom,
+  deleteThreadAtom,
+  setActiveThreadIdAtom,
   threadsAtom,
 } from '@/helpers/atoms/Thread.atom'
 
 const useThreads = () => {
   const setThreads = useSetAtom(threadsAtom)
-  const setThreadModelRuntimeParams = useSetAtom(threadModelParamsAtom)
-  const { fetchThreads } = useCortex()
+  const setActiveThreadId = useSetAtom(setActiveThreadIdAtom)
+  const setThreadMessage = useSetAtom(setThreadMessagesAtom)
+  const deleteMessages = useSetAtom(deleteChatMessagesAtom)
+  const deleteThreadState = useSetAtom(deleteThreadAtom)
+  const {
+    fetchThreads,
+    createThread,
+    fetchMessages,
+    deleteThread: deleteCortexThread,
+  } = useCortex()
 
   const getThreadList = useCallback(async () => {
     const threads = await fetchThreads()
-
-    // TODO: namh since we store setting to global model so we don't need so save to thread here?
-    const threadModelParams: Record<string, ModelParams> = {}
-    threads.forEach((thread) => {
-      const modelParams = thread.assistants?.[0]?.model?.parameters
-      const engineParams = thread.assistants?.[0]?.model?.settings
-      threadModelParams[thread.id] = {
-        ...modelParams,
-        ...engineParams,
-      }
-    })
-
     setThreads(threads)
-    setThreadModelRuntimeParams(threadModelParams)
-  }, [setThreads, setThreadModelRuntimeParams, fetchThreads])
+  }, [setThreads, fetchThreads])
 
-  const createNewThread = useCallback(async (modelId: string) => {
-    // create assistant
-    // const assistant = await createAssistant(modelId)
-    // using assistant above to map to thread
-  }, [])
+  const setActiveThread = useCallback(
+    async (threadId: string) => {
+      const messages = await fetchMessages(threadId)
+      setThreadMessage(threadId, messages)
+      setActiveThreadId(threadId)
+    },
+    [fetchMessages, setThreadMessage, setActiveThreadId]
+  )
 
-  return { getThreadList }
+  const createNewThread = useCallback(
+    async (modelId: string, assistant: Assistant) => {
+      assistant.model = modelId
+      const thread = await createThread(assistant)
+      setThreads((threads) => [thread, ...threads])
+      setActiveThread(thread.id)
+    },
+    [createThread, setActiveThread, setThreads]
+  )
+
+  const deleteThread = useCallback(
+    async (threadId: string, title: string) => {
+      try {
+        await deleteCortexThread(threadId)
+        deleteThreadState(threadId)
+        deleteMessages(threadId)
+
+        // TODO: Handle case: if empty thread then create new thread and set it as active
+        // else then set active thread id as the first thread in the list
+        // has to be done outside of this hook
+
+        toaster({
+          title: 'Thread successfully deleted.',
+          description: `Thread ${title} has been successfully deleted.`,
+          type: 'success',
+        })
+      } catch (err) {
+        console.error(err)
+      }
+    },
+    [deleteMessages, deleteCortexThread, deleteThreadState]
+  )
+
+  return {
+    getThreadList,
+    createThread: createNewThread,
+    setActiveThread,
+    deleteThread,
+  }
 }
 
 export default useThreads

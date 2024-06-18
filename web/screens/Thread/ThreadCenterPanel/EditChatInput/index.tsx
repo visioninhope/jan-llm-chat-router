@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { ThreadMessage } from '@janhq/core'
-
+import { Message } from '@janhq/core'
 import { TextArea, Button, Modal, ModalClose } from '@janhq/joi'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 
@@ -11,7 +10,7 @@ import { editPromptAtom } from '@/containers/Providers/Jotai'
 
 import { useActiveModel } from '@/hooks/useActiveModel'
 
-import useSendChatMessage from '@/hooks/useSendChatMessage'
+import useSendMessage from '@/hooks/useSendMessage'
 
 import {
   editMessageAtom,
@@ -24,17 +23,16 @@ import {
 } from '@/helpers/atoms/Thread.atom'
 
 type Props = {
-  message: ThreadMessage
+  message: Message
 }
 
 const EditChatInput: React.FC<Props> = ({ message }) => {
   const activeThread = useAtomValue(activeThreadAtom)
-  const { stateModel, stopInference } = useActiveModel()
+  const { stateModel } = useActiveModel()
   const messages = useAtomValue(getCurrentChatMessagesAtom)
 
   const [editPrompt, setEditPrompt] = useAtom(editPromptAtom)
-  const { sendChatMessage } = useSendChatMessage()
-  // const setMessages = useSetAtom(setConvoMessagesAtom)
+  const { sendMessage } = useSendMessage()
   const activeThreadId = useAtomValue(getActiveThreadIdAtom)
 
   const [isWaitingToSend, setIsWaitingToSend] = useAtom(waitingToSendMessage)
@@ -49,14 +47,14 @@ const EditChatInput: React.FC<Props> = ({ message }) => {
   useEffect(() => {
     if (isWaitingToSend && activeThreadId) {
       setIsWaitingToSend(false)
-      sendChatMessage(editPrompt)
+      sendMessage(editPrompt)
     }
   }, [
     activeThreadId,
     isWaitingToSend,
     editPrompt,
     setIsWaitingToSend,
-    sendChatMessage,
+    sendMessage,
   ])
 
   useEffect(() => {
@@ -101,9 +99,10 @@ const EditChatInput: React.FC<Props> = ({ message }) => {
   const onKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      if (messages[messages.length - 1]?.status !== 'in_progress')
+      if (messages[messages.length - 1]?.status !== 'in_progress'){
         sendEditMessage()
-      else stopInference()
+      }
+      // else stopInference()
     }
   }
 

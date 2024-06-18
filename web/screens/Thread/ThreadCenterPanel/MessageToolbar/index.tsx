@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 
-import { ThreadMessage, ContentType } from '@janhq/core'
+import { Message } from '@janhq/core'
 import { useAtomValue, useSetAtom } from 'jotai'
 import {
   RefreshCcw,
@@ -19,7 +19,11 @@ import {
   getCurrentChatMessagesAtom,
 } from '@/helpers/atoms/ChatMessage.atom'
 
-const MessageToolbar = ({ message }: { message: ThreadMessage }) => {
+type Props = {
+  message: Message
+}
+
+const MessageToolbar: React.FC<Props> = ({ message }) => {
   const deleteMessage = useSetAtom(deleteMessageAtom)
   const setEditMessage = useSetAtom(editMessageAtom)
   const messages = useAtomValue(getCurrentChatMessagesAtom)
@@ -39,20 +43,19 @@ const MessageToolbar = ({ message }: { message: ThreadMessage }) => {
   return (
     <div className="flex flex-row items-center">
       <div className="flex gap-1 bg-[hsla(var(--app-bg))]">
-        {message.role === 'user' &&
-          message.content[0]?.type === ContentType.Text && (
-            <div
-              className="cursor-pointer rounded-lg border border-[hsla(var(--app-border))] p-2"
-              onClick={() => setEditMessage(message.id)}
-            >
-              <PencilIcon
-                size={14}
-                className="text-[hsla(var(--text-secondary))]"
-              />
-            </div>
-          )}
+        {message.role === 'user' && message.content[0]?.type === 'text' && (
+          <div
+            className="cursor-pointer rounded-lg border border-[hsla(var(--app-border))] p-2"
+            onClick={() => setEditMessage(message.id)}
+          >
+            <PencilIcon
+              size={14}
+              className="text-[hsla(var(--text-secondary))]"
+            />
+          </div>
+        )}
 
-        {message.id === messages[messages.length - 1]?.id &&
+        {/* {message.id === messages[messages.length - 1]?.id &&
           messages[messages.length - 1].content[0]?.type !==
             ContentType.Pdf && (
             <div
@@ -64,7 +67,7 @@ const MessageToolbar = ({ message }: { message: ThreadMessage }) => {
                 className="text-[hsla(var(--text-secondary))]"
               />
             </div>
-          )}
+          )} */}
 
         <div
           className="cursor-pointer rounded-lg border border-[hsla(var(--app-border))] p-2"

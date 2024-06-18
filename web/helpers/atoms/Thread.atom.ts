@@ -2,6 +2,8 @@ import { ModelRuntimeParams, ModelSettingParams, Thread } from '@janhq/core'
 
 import { atom } from 'jotai'
 
+import { configuredModelsAtom, selectedModelAtom } from './Model.atom'
+
 /**
  * Stores the current active thread id.
  */
@@ -11,35 +13,33 @@ export const getActiveThreadIdAtom = atom((get) => get(activeThreadIdAtom))
 
 export const setActiveThreadIdAtom = atom(
   null,
-  (_get, set, threadId: string | undefined) => set(activeThreadIdAtom, threadId)
+  (get, set, threadId: string | undefined) => {
+    const thread = get(threadsAtom).find((t) => t.id === threadId)
+    if (!thread) return
+
+    set(activeThreadIdAtom, threadId)
+    const modelId = thread.assistants[0]?.model
+    if (!modelId) return
+
+    const model = get(configuredModelsAtom).find((m) => m.id === modelId)
+    if (!model) return
+    console.debug('Set selected model:', model)
+    set(selectedModelAtom, model)
+  }
 )
 
 export const waitingToSendMessage = atom<boolean | undefined>(undefined)
 
 export const isGeneratingResponseAtom = atom<boolean | undefined>(undefined)
 
-export const updateThreadAtom = atom(
-  null,
-  (get, set, updatedThread: Thread) => {
-    const threads: Thread[] = get(threadsAtom).map((c) =>
-      c.id === updatedThread.id ? updatedThread : c
-    )
-
-    // sort new threads based on updated at
-    threads.sort((thread1, thread2) => {
-      const aDate = new Date(thread1.updated ?? 0)
-      const bDate = new Date(thread2.updated ?? 0)
-      return bDate.getTime() - aDate.getTime()
-    })
-
-    set(threadsAtom, threads)
-  }
-)
-
 /**
  * Stores all threads for the current user
  */
 export const threadsAtom = atom<Thread[]>([])
+
+export const deleteThreadAtom = atom(null, (_get, set, threadId: string) => {
+  set(threadsAtom, (threads) => threads.filter((c) => c.id !== threadId))
+})
 
 export const activeThreadAtom = atom<Thread | undefined>((get) =>
   get(threadsAtom).find((c) => c.id === get(getActiveThreadIdAtom))
@@ -51,18 +51,6 @@ export const activeThreadAtom = atom<Thread | undefined>((get) =>
 export const threadModelParamsAtom = atom<Record<string, ModelParams>>({})
 
 export type ModelParams = ModelRuntimeParams | ModelSettingParams
-
-export const getActiveThreadModelParamsAtom = atom<ModelParams | undefined>(
-  (get) => {
-    const threadId = get(activeThreadIdAtom)
-    if (!threadId) {
-      console.debug('Active thread id is undefined')
-      return undefined
-    }
-
-    return get(threadModelParamsAtom)[threadId]
-  }
-)
 
 export const setThreadModelParamsAtom = atom(
   null,

@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 
-import { InferenceEngine } from '@janhq/core'
-
+import { LlmEngine } from '@janhq/core'
 import { Button, ScrollArea, Badge, Switch, Input } from '@janhq/joi'
 import { useAtom } from 'jotai'
 import { SearchIcon } from 'lucide-react'
@@ -19,7 +18,7 @@ import Extension from '@/extension/Extension'
 import { inActiveEngineProviderAtom } from '@/helpers/atoms/Extension.atom'
 
 type EngineExtension = {
-  provider: InferenceEngine
+  provider: LlmEngine
 } & Extension
 
 const ExtensionCatalog = () => {
