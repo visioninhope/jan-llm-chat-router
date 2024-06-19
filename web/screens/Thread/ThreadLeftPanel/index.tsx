@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 
 import { Thread } from '@janhq/core'
 
@@ -15,8 +15,6 @@ import { twMerge } from 'tailwind-merge'
 
 import LeftPanelContainer from '@/containers/LeftPanelContainer'
 import { toaster } from '@/containers/Toast'
-
-import useRecommendedModel from '@/hooks/useRecommendedModel'
 
 import useThreads from '@/hooks/useThreads'
 
@@ -38,7 +36,6 @@ const ThreadLeftPanel: React.FC = () => {
   const activeThreadId = useAtomValue(getActiveThreadIdAtom)
   const assistants = useAtomValue(assistantsAtom)
   const setEditMessage = useSetAtom(editMessageAtom)
-  const { recommendedModel, downloadedModels } = useRecommendedModel()
 
   const onThreadClick = useCallback(
     (thread: Thread) => {
@@ -47,32 +44,6 @@ const ThreadLeftPanel: React.FC = () => {
     },
     [setActiveThread, setEditMessage]
   )
-
-  /**
-   * Auto create thread
-   * This will create a new thread if there are assistants available
-   * and there are no threads available
-   */
-  useEffect(() => {
-    if (
-      assistants.length > 0 &&
-      threads.length === 0 &&
-      (recommendedModel || downloadedModels[0])
-    ) {
-      const model = recommendedModel || downloadedModels[0]
-      createThread(model.id, assistants[0])
-    } else if (!activeThreadId && threads.length > 0) {
-      setActiveThread(threads[0].id)
-    }
-  }, [
-    createThread,
-    setActiveThread,
-    assistants,
-    threads,
-    activeThreadId,
-    recommendedModel,
-    downloadedModels,
-  ])
 
   const onCreateThreadClicked = useCallback(async () => {
     if (assistants.length === 0) {

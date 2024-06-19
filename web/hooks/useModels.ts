@@ -20,6 +20,7 @@ const useModels = () => {
     fetchModels,
     stopModel: cortexStopModel,
     deleteModel: cortexDeleteModel,
+    updateModel: cortexUpdateModel,
   } = useCortex()
 
   const getModels = useCallback(() => {
@@ -50,7 +51,13 @@ const useModels = () => {
     [removeDownloadedModel, cortexDeleteModel]
   )
 
-  return { getModels, stopModel, deleteModel }
+  const updateModel = useCallback(
+    async (modelId: string, modelSettings: Record<string, unknown>) =>
+      cortexUpdateModel(modelId, modelSettings),
+    [cortexUpdateModel]
+  )
+
+  return { getModels, stopModel, deleteModel, updateModel }
 }
 
 export default useModels

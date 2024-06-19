@@ -157,18 +157,23 @@ const useCortex = () => {
 
   const createThread = useCallback(
     async (assistant: Assistant) => {
-      const thread: Thread = await cortex.beta.threads.create({
+      const createThreadResponse = await cortex.beta.threads.create({
         assistants: [assistant],
       })
+      const thread: Thread = {
+        ...createThreadResponse,
+        // @ts-expect-error each thread will have a title, else default to 'New Thread'
+        title: createThreadResponse.title ?? 'New Thread',
+        assistants: [assistant],
+      }
       return thread
     },
     [cortex.beta.threads]
   )
 
   const updateModel = useCallback(
-    async (modelId: string, options: Record<string, unknown>) => {
-      return cortex.models.update(modelId, options)
-    },
+    async (modelId: string, options: Record<string, unknown>) =>
+      cortex.models.update(modelId, options),
     [cortex.models]
   )
 
@@ -178,16 +183,13 @@ const useCortex = () => {
   )
 
   const abortDownload = useCallback(
-    async (downloadId: string) => {
-      return cortex.models.abortDownload(downloadId)
-    },
+    async (downloadId: string) => cortex.models.abortDownload(downloadId),
     [cortex.models]
   )
 
   const createAssistant = useCallback(
-    async (createParams: AssistantCreateParams) => {
-      return cortex.beta.assistants.create(createParams)
-    },
+    async (createParams: AssistantCreateParams) =>
+      cortex.beta.assistants.create(createParams),
     [cortex.beta.assistants]
   )
 

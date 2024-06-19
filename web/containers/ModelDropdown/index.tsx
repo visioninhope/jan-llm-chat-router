@@ -1,6 +1,6 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 
-import { LlmEngine, LocalEngines, Model, RemoteEngines } from '@janhq/core'
+import { LocalEngines, Model, RemoteEngines } from '@janhq/core'
 import { Badge, Input, ScrollArea, Select, useClickOutside } from '@janhq/joi'
 
 import { useAtomValue } from 'jotai'
@@ -14,8 +14,6 @@ import SetupRemoteModel from '@/containers/SetupRemoteModel'
 
 import useCortex from '@/hooks/useCortex'
 
-import useRecommendedModel from '@/hooks/useRecommendedModel'
-
 import useSelectModel from '@/hooks/useSelectModel'
 
 import { toGibibytes } from '@/utils/converter'
@@ -23,6 +21,7 @@ import { toGibibytes } from '@/utils/converter'
 import { inActiveEngineProviderAtom } from '@/helpers/atoms/Extension.atom'
 import {
   configuredModelsAtom,
+  downloadedModelsAtom,
   selectedModelAtom,
 } from '@/helpers/atoms/Model.atom'
 import { activeThreadAtom } from '@/helpers/atoms/Thread.atom'
@@ -45,6 +44,7 @@ const ModelDropdown: React.FC<Props> = ({
   strictedThread = true,
 }) => {
   const { downloadModel } = useCortex()
+  const downloadedModels = useAtomValue(downloadedModelsAtom)
   const [searchFilter, setSearchFilter] = useState('all')
   const [filterOptionsOpen, setFilterOptionsOpen] = useState(false)
   const [searchText, setSearchText] = useState('')
@@ -56,7 +56,6 @@ const ModelDropdown: React.FC<Props> = ({
 
   const { selectModel } = useSelectModel()
 
-  const { recommendedModel, downloadedModels } = useRecommendedModel()
   const [dropdownOptions, setDropdownOptions] = useState<HTMLDivElement | null>(
     null
   )
@@ -93,18 +92,6 @@ const ModelDropdown: React.FC<Props> = ({
         .sort((a, b) => a.id.localeCompare(b.id)),
     [downloadedModels, searchText, searchFilter]
   )
-
-  useEffect(() => {
-    if (!activeThread) return
-    let model = downloadedModels.find(
-      (model) => model.id === activeThread.assistants[0].model
-    )
-    if (!model) {
-      model = recommendedModel
-    }
-    if (!model) return
-    selectModel(model)
-  }, [recommendedModel, activeThread, downloadedModels, selectModel])
 
   const onModelSelected = useCallback(
     async (model: Model) => {

@@ -1,42 +1,48 @@
 import { Fragment, useCallback, useMemo } from 'react'
 
-import { SettingComponentProps, SliderComponentProps } from '@janhq/core'
+import { Model, SettingComponentProps, SliderComponentProps } from '@janhq/core'
 import { Accordion, AccordionItem } from '@janhq/joi'
-import { useAtomValue } from 'jotai'
+import { useAtom } from 'jotai'
+
+import { useDebouncedCallback } from 'use-debounce'
 
 import EngineSetting from '@/containers/EngineSetting'
 import ModelSetting from '@/containers/ModelSetting'
 
+import useModels from '@/hooks/useModels'
+
 import { getConfigurationsData } from '@/utils/componentSettings'
 import { toRuntimeParams, toSettingParams } from '@/utils/modelParam'
+
+import { presetConfiguration } from '@/utils/predefinedComponent'
 
 import PromptTemplateSetting from '../PromptTemplateSetting'
 
 import { selectedModelAtom } from '@/helpers/atoms/Model.atom'
 
 const ModelSettingContainer: React.FC = () => {
-  const selectedModel = useAtomValue(selectedModelAtom)
+  const { stopModel, updateModel } = useModels()
+  const [selectedModel, setSelectedModel] = useAtom(selectedModelAtom)
 
   const modelSettings = useMemo(() => {
-    const model = selectedModel
-    if (!model) return
+    if (!selectedModel) return
     // runtime setting
-    const modelRuntimeParams = toRuntimeParams(model)
+    const modelRuntimeParams = toRuntimeParams(selectedModel)
     const componentDataRuntimeSetting = getConfigurationsData(
       modelRuntimeParams,
-      model
+      selectedModel
     )
 
     // engine setting
-    const modelEngineParams = toSettingParams(model)
+    const modelEngineParams = toSettingParams(selectedModel)
     const componentDataEngineSetting = getConfigurationsData(
       modelEngineParams,
-      model
+      selectedModel
     ).filter((x) => x.key !== 'prompt_template' && x.key !== 'embedding')
 
     const promptTemplateSettings = getConfigurationsData(
       modelEngineParams,
-      model
+      selectedModel
     ).filter((x) => x.key === 'prompt_template')
 
     // the max value of max token has to follow context length
@@ -85,40 +91,33 @@ const ModelSettingContainer: React.FC = () => {
     }
   }, [selectedModel])
 
-  const onValueChanged = useCallback(
-    (key: string, value: string | number | boolean) => {
-      // // TODO: NamH check if we need to stop the model
-      // stopModel(activeThread.assistants[0].model)
-      // updateModelParameter(activeThread, {
-      //   params: { [key]: value },
-      // })
-      // if (
-      //   activeThread.assistants[0].model.parameters.max_tokens &&
-      //   activeThread.assistants[0].model.settings.ctx_len
-      // ) {
-      //   if (
-      //     key === 'max_tokens' &&
-      //     Number(value) > activeThread.assistants[0].model.settings.ctx_len
-      //   ) {
-      //     updateModelParameter(activeThread, {
-      //       params: {
-      //         max_tokens: activeThread.assistants[0].model.settings.ctx_len,
-      //       },
-      //     })
-      //   }
-      //   if (
-      //     key === 'ctx_len' &&
-      //     Number(value) < activeThread.assistants[0].model.parameters.max_tokens
-      //   ) {
-      //     updateModelParameter(activeThread, {
-      //       params: {
-      //         max_tokens: activeThread.assistants[0].model.settings.ctx_len,
-      //       },
-      //     })
-      //   }
-      // }
+  // debounce update model via API 500 ms
+  const debounceUpdateModel = useDebouncedCallback(
+    (modelId: string, settings: Record<string, unknown>) => {
+      updateModel(modelId, settings)
     },
-    []
+    500
+  )
+
+  const onValueChanged = useCallback(
+    async (key: string, value: string | number | boolean) => {
+      if (!selectedModel) return
+
+      const updatedModel: Model = {
+        ...selectedModel,
+        [key]: value,
+      }
+      setSelectedModel(updatedModel as Model)
+      debounceUpdateModel(selectedModel.id, { ...updatedModel })
+
+      const shouldStopModel =
+        presetConfiguration[key]?.requireModelReload ?? true
+
+      if (shouldStopModel) {
+        stopModel(selectedModel.id)
+      }
+    },
+    [selectedModel, debounceUpdateModel, stopModel, setSelectedModel]
   )
 
   if (!modelSettings) return null
