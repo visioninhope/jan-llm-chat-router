@@ -1,10 +1,12 @@
 import { useCallback } from 'react'
 
 import {
+  ChatCompletionCreateParams,
   ChatCompletionMessageParam,
   Message,
   MessageContent,
   TextContentBlock,
+  Thread,
 } from '@janhq/core'
 import { useAtomValue, useSetAtom } from 'jotai'
 
@@ -18,25 +20,63 @@ import {
   getCurrentChatMessagesAtom,
   updateMessageAtom,
 } from '@/helpers/atoms/ChatMessage.atom'
-import { activeModelsAtom } from '@/helpers/atoms/Model.atom'
+import { activeModelsAtom, selectedModelAtom } from '@/helpers/atoms/Model.atom'
 import {
   activeThreadAtom,
   isGeneratingResponseAtom,
+  updateThreadTitleAtom,
 } from '@/helpers/atoms/Thread.atom'
 
 const useSendMessage = () => {
   const addNewMessage = useSetAtom(addNewMessageAtom)
-  const { createMessage, streamChatMessages, updateMessage } = useCortex()
+  const {
+    createMessage,
+    streamChatMessages,
+    updateMessage,
+    chatCompletionNonStreaming,
+    updateThread,
+  } = useCortex()
   const updateMessageState = useSetAtom(updateMessageAtom)
   const setIsGeneratingResponse = useSetAtom(isGeneratingResponseAtom)
-
   const setCurrentPrompt = useSetAtom(currentPromptAtom)
   const setEditPrompt = useSetAtom(editPromptAtom)
+
+  const updateThreadTitle = useSetAtom(updateThreadTitleAtom)
 
   const activeThread = useAtomValue(activeThreadAtom)
   const activeModels = useAtomValue(activeModelsAtom)
   const currentMessages = useAtomValue(getCurrentChatMessagesAtom)
+  const selectedModel = useAtomValue(selectedModelAtom)
+
   const { startModel } = useActiveModel()
+
+  const summarizeThread = useCallback(
+    async (messages: string[], modelId: string, thread: Thread) => {
+      const maxWordForThreadTitle = 10
+      const summarizeMessages: ChatCompletionMessageParam[] = [
+        {
+          role: 'user',
+          content: `Summarize in a ${maxWordForThreadTitle}-word title the following conversation:\n\n${messages.join('\n')}`,
+        },
+      ]
+
+      const summarizeParams: ChatCompletionCreateParams = {
+        messages: summarizeMessages,
+        stream: false,
+        model: modelId,
+        max_tokens: 150,
+        temperature: 0.5,
+      }
+      const summarizeStream = await chatCompletionNonStreaming(summarizeParams)
+      const summarizedText = (
+        summarizeStream.choices[0].message.content ?? 'New Thread'
+      ).replace(/"/g, '')
+
+      updateThread({ ...thread, title: summarizedText })
+      updateThreadTitle(thread.id, summarizedText)
+    },
+    [chatCompletionNonStreaming, updateThreadTitle, updateThread]
+  )
 
   const sendMessage = useCallback(
     async (message: string) => {
@@ -44,7 +84,17 @@ const useSendMessage = () => {
         console.error('No active thread')
         return
       }
-
+      if (!selectedModel) {
+        console.error('No selected model')
+        return
+      }
+      if (selectedModel.id !== activeThread.assistants[0].model) {
+        alert(
+          "Selected model doesn't match active thread assistant model. This is a bug"
+        )
+        return
+      }
+      const shouldSummarize = activeThread.title === 'New Thread'
       const modelId = activeThread.assistants[0].model
 
       setCurrentPrompt('')
@@ -54,7 +104,6 @@ const useSendMessage = () => {
         role: 'user',
         content: message,
       })
-
       // Push to states
       addNewMessage(userMessage)
 
@@ -90,9 +139,20 @@ const useSendMessage = () => {
             }
           })
           .filter((msg) => msg != null) as ChatCompletionMessageParam[]
+        messages.push({
+          role: 'user',
+          content: message,
+        })
         messages.unshift(systemMessage)
 
-        const stream = await streamChatMessages(modelId, messages)
+        const completionMessageParams: ChatCompletionCreateParams = {
+          messages,
+          ...selectedModel,
+          stream: selectedModel.stream ?? true,
+          model: selectedModel.id,
+        }
+
+        const stream = await streamChatMessages(completionMessageParams)
 
         const assistantMessage = await createMessage(activeThread.id, {
           role: 'assistant',
@@ -149,6 +209,18 @@ const useSendMessage = () => {
           content: responseMessage.content,
         })
         setIsGeneratingResponse(false)
+
+        if (!shouldSummarize) return
+        // summarize if needed
+        const textMessages: string[] = messages
+          .map((msg) => {
+            if (typeof msg.content === 'string') return msg.content
+          })
+          .filter((msg) => msg != null) as string[]
+        textMessages.push(
+          (responseMessage.content[0] as TextContentBlock).text.value
+        )
+        summarizeThread(textMessages, modelId, activeThread)
       } catch (err) {
         console.error(err)
       }
@@ -157,6 +229,7 @@ const useSendMessage = () => {
       activeThread,
       activeModels,
       currentMessages,
+      selectedModel,
       setCurrentPrompt,
       setEditPrompt,
       setIsGeneratingResponse,
@@ -166,6 +239,7 @@ const useSendMessage = () => {
       createMessage,
       startModel,
       streamChatMessages,
+      summarizeThread,
     ]
   )
 

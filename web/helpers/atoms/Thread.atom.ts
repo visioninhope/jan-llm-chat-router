@@ -45,6 +45,19 @@ export const activeThreadAtom = atom<Thread | undefined>((get) =>
   get(threadsAtom).find((c) => c.id === get(getActiveThreadIdAtom))
 )
 
+export const updateThreadTitleAtom = atom(
+  null,
+  (_get, set, threadId: string, title: string) => {
+    set(
+      threadsAtom,
+      (threads) =>
+        threads.map((t) =>
+          t.id === threadId ? { ...t, title } : t
+        ) as Thread[]
+    )
+  }
+)
+
 /**
  * Store model params at thread level settings
  */

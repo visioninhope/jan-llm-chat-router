@@ -6,8 +6,7 @@ import {
   Model,
   Message,
   Thread,
-  MessageCreateParams,
-  ChatCompletionMessageParam,
+  ChatCompletionCreateParams,
 } from '@janhq/core'
 
 import { Cortex } from '@janhq/cortex-node'
@@ -91,19 +90,20 @@ const useCortex = () => {
     [cortex.models]
   )
 
+  const chatCompletionNonStreaming = useCallback(
+    async (chatCompletionCreateParams: ChatCompletionCreateParams) =>
+      /* @ts-expect-error stream is a required parameter*/ cortex.chat.completions.create(
+        chatCompletionCreateParams
+      ),
+    [cortex.chat.completions]
+  )
+
   const streamChatMessages = useCallback(
-    async (modelId: string, messages: ChatCompletionMessageParam[]) => {
-      const stream = await cortex.chat.completions.create({
-        model: modelId,
-        messages: messages,
-        stream: true,
-        max_tokens: 2048, // TODO: passing those options from outside
-        stop: [],
-        frequency_penalty: 0.7,
-        presence_penalty: 0.7,
-        temperature: 0.7,
-        top_p: 1,
-      })
+    async (chatCompletionCreateParams: ChatCompletionCreateParams) => {
+      const stream = await cortex.chat.completions.create(
+        // @ts-expect-error stream is a required parameter
+        chatCompletionCreateParams
+      )
       return stream
     },
     [cortex.chat.completions]
@@ -220,6 +220,7 @@ const useCortex = () => {
     createAssistant,
     updateAssistant,
     updateModel,
+    chatCompletionNonStreaming,
   }
 }
 
