@@ -1,6 +1,6 @@
 import { Model as OpenAiModel } from 'openai/resources'
 
-export const LocalEngines = ['cortex.llamacpp', 'cortex.onnx', 'cortex.tensorrt'] as const
+export const LocalEngines = ['cortex.llamacpp', 'cortex.onnx', 'cortex.tensorrt-llm'] as const
 
 export const RemoteEngines = [
   'anthropic',

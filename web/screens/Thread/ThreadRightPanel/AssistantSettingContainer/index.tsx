@@ -1,27 +1,27 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import { TextArea } from '@janhq/joi'
-import { useAtomValue } from 'jotai'
 
+import { useAtomValue } from 'jotai'
 import { useDebouncedCallback } from 'use-debounce'
 
 import useUpdateInstruction from '@/hooks/useUpdateInstruction'
 
 import { activeThreadAtom } from '@/helpers/atoms/Thread.atom'
 
-type Props = {
-  instructions: string
-}
-
-const AssistantSettingContainer: React.FC<Props> = ({
-  instructions: assistantInstructions,
-}) => {
-  const [instructions, setInstructions] = useState(assistantInstructions)
+const AssistantSettingContainer: React.FC = () => {
   const activeThread = useAtomValue(activeThreadAtom)
+  const [instructions, setInstructions] = useState(
+    activeThread?.assistants[0]?.instructions || ''
+  )
   const { updateInstruction } = useUpdateInstruction()
 
-  const debounced = useDebouncedCallback(async () => {
-    updateInstruction(instructions)
+  useEffect(() => {
+    setInstructions(activeThread?.assistants[0]?.instructions || '')
+  }, [activeThread])
+
+  const debounced = useDebouncedCallback(async (instruction: string) => {
+    updateInstruction(instruction)
   }, 500)
 
   const onInstructionChanged = useCallback(
@@ -29,12 +29,10 @@ const AssistantSettingContainer: React.FC<Props> = ({
       e.preventDefault()
       e.stopPropagation()
       setInstructions(e.target.value)
-      debounced()
+      debounced(e.target.value)
     },
     [debounced]
   )
-
-  if (!activeThread) return null
 
   return (
     <div className="flex flex-col space-y-4 p-4">
