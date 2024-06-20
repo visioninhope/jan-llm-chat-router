@@ -2,7 +2,7 @@ import { useAtomValue } from 'jotai'
 
 import { MainViewState } from '@/constants/screens'
 
-import HubScreen from '@/screens/Hub'
+import HubScreen2 from '@/screens/HubScreen2'
 import SettingsScreen from '@/screens/Settings'
 import ThreadScreen from '@/screens/Thread'
 
@@ -14,7 +14,7 @@ const MainViewContainer = () => {
   let children = null
   switch (mainViewState) {
     case MainViewState.Hub:
-      children = <HubScreen />
+      children = <HubScreen2 />
       break
 
     case MainViewState.Settings:

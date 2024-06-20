@@ -99,7 +99,7 @@ const EditChatInput: React.FC<Props> = ({ message }) => {
   const onKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      if (messages[messages.length - 1]?.status !== 'in_progress'){
+      if (messages[messages.length - 1]?.status !== 'in_progress') {
         sendEditMessage()
       }
       // else stopInference()

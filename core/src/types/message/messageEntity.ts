@@ -3,6 +3,7 @@ import {
   ChatCompletionMessage as OpenAiChatCompletionMessage,
 } from 'openai/resources'
 import {
+  MessageCreateParams as OpenAiMessageCreateParams,
   Message as OpenAiMessage,
   MessageContent as OpenAiMessageContent,
   TextContentBlock as OpenAiTextContentBlock,
@@ -21,3 +22,5 @@ export interface MessageAttachment extends OpenAiMessage.Attachment {}
 export interface ChatCompletionMessage extends OpenAiChatCompletionMessage {}
 
 export type ChatCompletionMessageParam = OpenAiChatCompletionMessageParam
+
+export interface MessageCreateParams extends OpenAiMessageCreateParams {}

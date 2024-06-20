@@ -2,19 +2,36 @@ import { useCallback, memo, useState } from 'react'
 
 import { Thread } from '@janhq/core'
 import { Modal, ModalClose, Button, Input } from '@janhq/joi'
+import { useSetAtom } from 'jotai'
 import { PencilIcon } from 'lucide-react'
+
+import { useDebouncedCallback } from 'use-debounce'
+
+import useCortex from '@/hooks/useCortex'
+
+import { updateThreadTitleAtom } from '@/helpers/atoms/Thread.atom'
 
 type Props = {
   thread: Thread
 }
 
 const ModalEditTitleThread: React.FC<Props> = ({ thread }) => {
+  const { updateThread } = useCortex()
+  const updateThreadTitle = useSetAtom(updateThreadTitleAtom)
+
   const [title, setTitle] = useState(thread.title)
 
+  const debounceUpdateThreadTitle = useDebouncedCallback(
+    async (title: string) => {
+      updateThread({ ...thread, title })
+    },
+    500
+  )
+
   const onUpdateTitle = useCallback(() => {
-    // TODO: NamH update title
-    console.log(title)
-  }, [title])
+    updateThreadTitle(thread.id, title)
+    debounceUpdateThreadTitle(title)
+  }, [title, debounceUpdateThreadTitle, thread.id, updateThreadTitle])
 
   return (
     <Modal

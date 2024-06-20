@@ -1,13 +1,14 @@
 import { useCallback } from 'react'
 
 import {
-  ChatCompletionCreateParams,
+  ChatCompletionCreateParamsNonStreaming,
   ChatCompletionMessageParam,
   Message,
   MessageContent,
   TextContentBlock,
   Thread,
 } from '@janhq/core'
+
 import { useAtomValue, useSetAtom } from 'jotai'
 
 import { currentPromptAtom, editPromptAtom } from '@/containers/Providers/Jotai'
@@ -60,9 +61,8 @@ const useSendMessage = () => {
         },
       ]
 
-      const summarizeParams: ChatCompletionCreateParams = {
+      const summarizeParams: ChatCompletionCreateParamsNonStreaming = {
         messages: summarizeMessages,
-        stream: false,
         model: modelId,
         max_tokens: 150,
         temperature: 0.5,
@@ -145,69 +145,110 @@ const useSendMessage = () => {
         })
         messages.unshift(systemMessage)
 
-        const completionMessageParams: ChatCompletionCreateParams = {
-          messages,
-          ...selectedModel,
-          stream: selectedModel.stream ?? true,
-          model: selectedModel.id,
-        }
+        let assistantResponseMessage = ''
+        if (selectedModel.stream === true) {
+          const stream = await streamChatMessages({
+            messages,
+            ...selectedModel,
+            model: selectedModel.id,
+            stream: true,
+          })
 
-        const stream = await streamChatMessages(completionMessageParams)
+          const assistantMessage = await createMessage(activeThread.id, {
+            role: 'assistant',
+            content: '',
+          })
 
-        const assistantMessage = await createMessage(activeThread.id, {
-          role: 'assistant',
-          content: '',
-        })
-
-        const responseMessage: Message = {
-          id: assistantMessage.id,
-          thread_id: activeThread.id,
-          assistant_id: activeThread.id,
-          role: 'assistant',
-          content: [],
-          status: 'in_progress',
-          created_at: assistantMessage.created_at,
-          metadata: undefined,
-          attachments: null,
-          completed_at: null,
-          incomplete_at: null,
-          incomplete_details: null,
-          object: 'thread.message',
-          run_id: null,
-        }
-
-        addNewMessage(responseMessage)
-
-        let assistantResponse: string = ''
-        for await (const chunk of stream) {
-          const content = chunk.choices[0]?.delta?.content || ''
-          assistantResponse += content
-          const messageContent: MessageContent = {
-            type: 'text',
-            text: {
-              value: assistantResponse,
-              annotations: [],
-            },
+          const responseMessage: Message = {
+            id: assistantMessage.id,
+            thread_id: activeThread.id,
+            assistant_id: activeThread.id,
+            role: 'assistant',
+            content: [],
+            status: 'in_progress',
+            created_at: assistantMessage.created_at,
+            metadata: undefined,
+            attachments: null,
+            completed_at: null,
+            incomplete_at: null,
+            incomplete_details: null,
+            object: 'thread.message',
+            run_id: null,
           }
-          responseMessage.content = [messageContent]
+
+          addNewMessage(responseMessage)
+
+          for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content || ''
+            assistantResponseMessage += content
+            const messageContent: MessageContent = {
+              type: 'text',
+              text: {
+                value: assistantResponseMessage,
+                annotations: [],
+              },
+            }
+            responseMessage.content = [messageContent]
+            updateMessageState(
+              responseMessage.id,
+              responseMessage.thread_id,
+              responseMessage.content,
+              responseMessage.status
+            )
+          }
+
+          responseMessage.status = 'completed'
           updateMessageState(
             responseMessage.id,
             responseMessage.thread_id,
             responseMessage.content,
             responseMessage.status
           )
+          updateMessage(activeThread.id, responseMessage.id, {
+            content: responseMessage.content,
+          })
+        } else {
+          const response = await chatCompletionNonStreaming({
+            messages,
+            ...selectedModel,
+            model: selectedModel.id,
+            stream: false,
+          })
+
+          assistantResponseMessage = response.choices[0].message.content ?? ''
+          const assistantMessage = await createMessage(activeThread.id, {
+            role: 'assistant',
+            content: assistantResponseMessage,
+          })
+
+          const responseMessage: Message = {
+            id: assistantMessage.id,
+            thread_id: activeThread.id,
+            assistant_id: activeThread.id,
+            role: 'assistant',
+            content: [
+              {
+                type: 'text',
+                text: {
+                  value: assistantResponseMessage,
+                  annotations: [],
+                },
+              },
+            ],
+            status: 'completed',
+            created_at: assistantMessage.created_at,
+            metadata: undefined,
+            attachments: null,
+            completed_at: null,
+            incomplete_at: null,
+            incomplete_details: null,
+            object: 'thread.message',
+            run_id: null,
+          }
+
+          addNewMessage(responseMessage)
         }
 
-        responseMessage.status = 'completed'
-        updateMessageState(
-          responseMessage.id,
-          responseMessage.thread_id,
-          responseMessage.content,
-          responseMessage.status
-        )
-        updateMessage(activeThread.id, responseMessage.id, {
-          content: responseMessage.content,
-        })
         setIsGeneratingResponse(false)
 
         if (!shouldSummarize) return
@@ -217,9 +258,7 @@ const useSendMessage = () => {
             if (typeof msg.content === 'string') return msg.content
           })
           .filter((msg) => msg != null) as string[]
-        textMessages.push(
-          (responseMessage.content[0] as TextContentBlock).text.value
-        )
+        textMessages.push(assistantResponseMessage)
         summarizeThread(textMessages, modelId, activeThread)
       } catch (err) {
         console.error(err)
@@ -238,6 +277,7 @@ const useSendMessage = () => {
       addNewMessage,
       createMessage,
       startModel,
+      chatCompletionNonStreaming,
       streamChatMessages,
       summarizeThread,
     ]

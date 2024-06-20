@@ -58,24 +58,20 @@ const BaseLayout = () => {
       <TopPanel />
       <div className="relative top-9 flex h-[calc(100vh-(36px+36px))] w-screen">
         <RibbonPanel />
-        <div className={twMerge('relative flex w-full')}>
-          <div className="w-full">
-            <m.div
-              key={mainViewState}
-              initial={{ opacity: 0, y: -8 }}
-              className="h-full"
-              animate={{
-                opacity: 1,
-                y: 0,
-                transition: {
-                  duration: 0.5,
-                },
-              }}
-            >
-              <MainViewContainer />
-            </m.div>
-          </div>
-        </div>
+        <m.div
+          key={mainViewState}
+          initial={{ opacity: 0, y: -8 }}
+          className="h-full w-full"
+          animate={{
+            opacity: 1,
+            y: 0,
+            transition: {
+              duration: 0.5,
+            },
+          }}
+        >
+          <MainViewContainer />
+        </m.div>
         <LoadingModal />
         {importModelStage === 'SELECTING_MODEL' && <SelectingModelModal />}
         {importModelStage === 'MODEL_SELECTED' && <ImportModelOptionModal />}

@@ -6,7 +6,9 @@ import {
   Model,
   Message,
   Thread,
-  ChatCompletionCreateParams,
+  MessageCreateParams,
+  ChatCompletionCreateParamsNonStreaming,
+  ChatCompletionCreateParamsStreaming,
 } from '@janhq/core'
 
 import { Cortex } from '@janhq/cortex-node'
@@ -91,21 +93,20 @@ const useCortex = () => {
   )
 
   const chatCompletionNonStreaming = useCallback(
-    async (chatCompletionCreateParams: ChatCompletionCreateParams) =>
-      /* @ts-expect-error stream is a required parameter*/ cortex.chat.completions.create(
-        chatCompletionCreateParams
-      ),
+    async (
+      chatCompletionCreateParams: ChatCompletionCreateParamsNonStreaming
+    ) =>
+      // @ts-expect-error stream is a required parameter
+      cortex.chat.completions.create(chatCompletionCreateParams),
     [cortex.chat.completions]
   )
 
   const streamChatMessages = useCallback(
-    async (chatCompletionCreateParams: ChatCompletionCreateParams) => {
-      const stream = await cortex.chat.completions.create(
+    async (chatCompletionCreateParams: ChatCompletionCreateParamsStreaming) =>
+      cortex.chat.completions.create(
         // @ts-expect-error stream is a required parameter
         chatCompletionCreateParams
-      )
-      return stream
-    },
+      ),
     [cortex.chat.completions]
   )
 

@@ -107,6 +107,10 @@ const ModelSettingContainer: React.FC = () => {
         ...selectedModel,
         [key]: value,
       }
+      if (key === 'stop') {
+        updatedModel['stop'] = (value as string).split(' ')
+      }
+
       setSelectedModel(updatedModel as Model)
       debounceUpdateModel(selectedModel.id, { ...updatedModel })
 

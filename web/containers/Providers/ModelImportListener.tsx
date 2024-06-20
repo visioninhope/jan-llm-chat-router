@@ -4,7 +4,6 @@ import {
   ImportingModel,
   LocalImportModelEvent,
   Model,
-  ModelEvent,
   events,
 } from '@janhq/core'
 import { useSetAtom } from 'jotai'
@@ -43,7 +42,7 @@ const ModelImportListener: React.FC = () => {
   const onImportModelSuccess = useCallback(
     (state: ImportingModel) => {
       if (!state.modelId) return
-      events.emit(ModelEvent.OnModelsUpdate, {})
+      // events.emit(ModelEvent.OnModelsUpdate, {})
       setImportingModelSuccess(state.importId, state.modelId)
     },
     [setImportingModelSuccess]

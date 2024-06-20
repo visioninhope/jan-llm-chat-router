@@ -1,5 +1,10 @@
-import { ChatCompletionCreateParamsBase as OpenAiChatCompletionCreateParamsBase } from 'openai/resources/chat/completions'
+import {
+  ChatCompletionCreateParamsNonStreaming as OpenAiChatCompletionCreateParamsNonStreaming,
+  ChatCompletionCreateParamsStreaming as OpenAiChatCompletionCreateParamsStreaming,
+} from 'openai/resources/chat/completions'
 
-export interface ChatCompletionCreateParams extends OpenAiChatCompletionCreateParamsBase {
-  stream: boolean
-}
+export interface ChatCompletionCreateParamsNonStreaming
+  extends OpenAiChatCompletionCreateParamsNonStreaming {}
+
+export interface ChatCompletionCreateParamsStreaming
+  extends OpenAiChatCompletionCreateParamsStreaming {}

@@ -88,9 +88,7 @@ const ThreadLeftPanel: React.FC = () => {
               className={twMerge(
                 `group/message relative mb-1 flex cursor-pointer flex-col transition-all hover:rounded-lg hover:bg-[hsla(var(--left-panel-menu-hover))]`
               )}
-              onClick={() => {
-                onThreadClick(thread)
-              }}
+              onClick={() => onThreadClick(thread)}
             >
               <div className="relative z-10 p-2">
                 <h1
