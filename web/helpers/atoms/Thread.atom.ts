@@ -4,6 +4,19 @@ import { atom } from 'jotai'
 
 import { configuredModelsAtom, selectedModelAtom } from './Model.atom'
 
+const threadIdShouldAnimateTitle = atom<string[]>([])
+
+export const getThreadIdsShouldAnimateTitleAtom = atom((get) =>
+  get(threadIdShouldAnimateTitle)
+)
+
+export const addThreadIdShouldAnimateTitleAtom = atom(
+  null,
+  (_get, set, threadId: string) => {
+    set(threadIdShouldAnimateTitle, (current) => [...current, threadId])
+  }
+)
+
 /**
  * Stores the current active thread id.
  */

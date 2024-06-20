@@ -24,6 +24,7 @@ import {
 import { activeModelsAtom, selectedModelAtom } from '@/helpers/atoms/Model.atom'
 import {
   activeThreadAtom,
+  addThreadIdShouldAnimateTitleAtom,
   isGeneratingResponseAtom,
   updateThreadTitleAtom,
 } from '@/helpers/atoms/Thread.atom'
@@ -42,6 +43,9 @@ const useSendMessage = () => {
   const setCurrentPrompt = useSetAtom(currentPromptAtom)
   const setEditPrompt = useSetAtom(editPromptAtom)
   const updateThreadTitle = useSetAtom(updateThreadTitleAtom)
+  const addThreadIdShouldAnimateTitle = useSetAtom(
+    addThreadIdShouldAnimateTitleAtom
+  )
 
   const activeThread = useAtomValue(activeThreadAtom)
   const activeModels = useAtomValue(activeModelsAtom)
@@ -75,10 +79,16 @@ const useSendMessage = () => {
         summarizeStream.choices[0].message.content ?? 'New Thread'
       ).replace(/"/g, '')
 
+      addThreadIdShouldAnimateTitle(thread.id)
       updateThread({ ...thread, title: summarizedText })
       updateThreadTitle(thread.id, summarizedText)
     },
-    [chatCompletionNonStreaming, updateThreadTitle, updateThread]
+    [
+      addThreadIdShouldAnimateTitle,
+      chatCompletionNonStreaming,
+      updateThreadTitle,
+      updateThread,
+    ]
   )
 
   const sendMessage = useCallback(
