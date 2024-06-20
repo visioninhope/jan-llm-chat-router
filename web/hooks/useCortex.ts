@@ -94,18 +94,23 @@ const useCortex = () => {
 
   const chatCompletionNonStreaming = useCallback(
     async (
-      chatCompletionCreateParams: ChatCompletionCreateParamsNonStreaming
+      chatCompletionCreateParams: ChatCompletionCreateParamsNonStreaming,
+      options?: Record<string, unknown>
     ) =>
       // @ts-expect-error stream is a required parameter
-      cortex.chat.completions.create(chatCompletionCreateParams),
+      cortex.chat.completions.create(chatCompletionCreateParams, options),
     [cortex.chat.completions]
   )
 
-  const streamChatMessages = useCallback(
-    async (chatCompletionCreateParams: ChatCompletionCreateParamsStreaming) =>
+  const chatCompletionStreaming = useCallback(
+    async (
+      chatCompletionCreateParams: ChatCompletionCreateParamsStreaming,
+      options?: Record<string, unknown>
+    ) =>
       cortex.chat.completions.create(
         // @ts-expect-error stream is a required parameter
-        chatCompletionCreateParams
+        chatCompletionCreateParams,
+        options
       ),
     [cortex.chat.completions]
   )
@@ -207,7 +212,7 @@ const useCortex = () => {
     fetchMessages,
     startModel,
     stopModel,
-    streamChatMessages,
+    chatCompletionStreaming,
     deleteModel,
     deleteThread,
     deleteMessage,

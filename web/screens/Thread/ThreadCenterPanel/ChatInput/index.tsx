@@ -14,7 +14,6 @@ import {
   FileTextIcon,
   ImageIcon,
   StopCircle,
-  PaperclipIcon,
   SettingsIcon,
   ChevronUpIcon,
   Settings2Icon,
@@ -27,8 +26,6 @@ import ModelDropdown from '@/containers/ModelDropdown'
 import { currentPromptAtom, fileUploadAtom } from '@/containers/Providers/Jotai'
 
 import { useActiveModel } from '@/hooks/useActiveModel'
-
-import useSendMessage from '@/hooks/useSendMessage'
 
 import FileUploadPreview from '../FileUploadPreview'
 import ImageUploadPreview from '../ImageUploadPreview'
@@ -44,14 +41,18 @@ import {
 } from '@/helpers/atoms/Thread.atom'
 import { activeTabThreadRightPanelAtom } from '@/helpers/atoms/ThreadRightPanel.atom'
 
-const ChatInput = () => {
+type Props = {
+  sendMessage: (message: string) => void
+  stopInference: () => void
+}
+
+const ChatInput: React.FC<Props> = ({ sendMessage, stopInference }) => {
   const activeThread = useAtomValue(activeThreadAtom)
   const { stateModel } = useActiveModel()
   const messages = useAtomValue(getCurrentChatMessagesAtom)
   const [activeSetting, setActiveSetting] = useState(false)
 
   const [currentPrompt, setCurrentPrompt] = useAtom(currentPromptAtom)
-  const { sendMessage } = useSendMessage()
 
   const activeThreadId = useAtomValue(getActiveThreadIdAtom)
   const [isWaitingToSend, setIsWaitingToSend] = useAtom(waitingToSendMessage)
@@ -62,7 +63,6 @@ const ChatInput = () => {
   const imageInputRef = useRef<HTMLInputElement>(null)
   const experimentalFeature = useAtomValue(experimentalFeatureEnabledAtom)
   const isGeneratingResponse = useAtomValue(isGeneratingResponseAtom)
-  const { stopInference } = useActiveModel()
 
   const setActiveTabThreadRightPanel = useSetAtom(activeTabThreadRightPanelAtom)
   const isStreamingResponse = useAtomValue(isGeneratingResponseAtom)
@@ -109,12 +109,8 @@ const ChatInput = () => {
       e.preventDefault()
       if (messages[messages.length - 1]?.status !== 'in_progress')
         sendMessage(currentPrompt)
-      else onStopInferenceClick()
+      else stopInference()
     }
-  }
-
-  const onStopInferenceClick = async () => {
-    stopInference()
   }
 
   /**
@@ -356,7 +352,7 @@ const ChatInput = () => {
             ) : (
               <Button
                 theme="destructive"
-                onClick={onStopInferenceClick}
+                onClick={stopInference}
                 className="h-8 w-8 rounded-lg p-0"
               >
                 <StopCircle size={20} />

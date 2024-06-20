@@ -17,6 +17,8 @@ import { snackbar } from '@/containers/Toast'
 
 import { activeModelAtom } from '@/hooks/useActiveModel'
 
+import useSendMessage from '@/hooks/useSendMessage'
+
 import ChatBody from '@/screens/Thread/ThreadCenterPanel/ChatBody'
 
 import EmptyModel from './ChatBody/EmptyModel'
@@ -46,7 +48,8 @@ const renderError = (code: string) => {
   }
 }
 
-const ThreadCenterPanel = () => {
+const ThreadCenterPanel: React.FC = () => {
+  const { sendMessage, stopInference } = useSendMessage()
   const [dragRejected, setDragRejected] = useState({ code: '' })
   const setFileUpload = useSetAtom(fileUploadAtom)
   const experimentalFeature = useAtomValue(experimentalFeatureEnabledAtom)
@@ -217,7 +220,7 @@ const ThreadCenterPanel = () => {
           )}
 
           {activeModel && isGeneratingResponse && <GenerateResponse />}
-          <ChatInput />
+          <ChatInput sendMessage={sendMessage} stopInference={stopInference} />
         </div>
       </div>
     </CenterPanelContainer>

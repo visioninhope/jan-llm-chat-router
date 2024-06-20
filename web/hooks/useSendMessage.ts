@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 import {
   ChatCompletionCreateParamsNonStreaming,
@@ -32,7 +32,7 @@ const useSendMessage = () => {
   const addNewMessage = useSetAtom(addNewMessageAtom)
   const {
     createMessage,
-    streamChatMessages,
+    chatCompletionStreaming,
     updateMessage,
     chatCompletionNonStreaming,
     updateThread,
@@ -41,15 +41,18 @@ const useSendMessage = () => {
   const setIsGeneratingResponse = useSetAtom(isGeneratingResponseAtom)
   const setCurrentPrompt = useSetAtom(currentPromptAtom)
   const setEditPrompt = useSetAtom(editPromptAtom)
-
   const updateThreadTitle = useSetAtom(updateThreadTitleAtom)
 
   const activeThread = useAtomValue(activeThreadAtom)
   const activeModels = useAtomValue(activeModelsAtom)
   const currentMessages = useAtomValue(getCurrentChatMessagesAtom)
   const selectedModel = useAtomValue(selectedModelAtom)
-
   const { startModel } = useActiveModel()
+  const abortControllerRef = useRef<AbortController | undefined>(undefined)
+
+  const stopInference = useCallback(() => {
+    abortControllerRef.current?.abort()
+  }, [])
 
   const summarizeThread = useCallback(
     async (messages: string[], modelId: string, thread: Thread) => {
@@ -147,12 +150,14 @@ const useSendMessage = () => {
 
         let assistantResponseMessage = ''
         if (selectedModel.stream === true) {
-          const stream = await streamChatMessages({
+          const stream = await chatCompletionStreaming({
             messages,
             ...selectedModel,
             model: selectedModel.id,
             stream: true,
           })
+
+          abortControllerRef.current = stream.controller
 
           const assistantMessage = await createMessage(activeThread.id, {
             role: 'assistant',
@@ -169,7 +174,7 @@ const useSendMessage = () => {
             created_at: assistantMessage.created_at,
             metadata: undefined,
             attachments: null,
-            completed_at: null,
+            completed_at: Date.now(),
             incomplete_at: null,
             incomplete_details: null,
             object: 'thread.message',
@@ -197,6 +202,8 @@ const useSendMessage = () => {
             )
           }
 
+          abortControllerRef.current = undefined
+
           responseMessage.status = 'completed'
           updateMessageState(
             responseMessage.id,
@@ -208,12 +215,18 @@ const useSendMessage = () => {
             content: responseMessage.content,
           })
         } else {
-          const response = await chatCompletionNonStreaming({
-            messages,
-            ...selectedModel,
-            model: selectedModel.id,
-            stream: false,
-          })
+          const abortController = new AbortController()
+          const response = await chatCompletionNonStreaming(
+            {
+              messages,
+              ...selectedModel,
+              model: selectedModel.id,
+              stream: false,
+            },
+            {
+              signal: abortController.signal,
+            }
+          )
 
           assistantResponseMessage = response.choices[0].message.content ?? ''
           const assistantMessage = await createMessage(activeThread.id, {
@@ -239,12 +252,15 @@ const useSendMessage = () => {
             created_at: assistantMessage.created_at,
             metadata: undefined,
             attachments: null,
-            completed_at: null,
+            completed_at: Date.now(),
             incomplete_at: null,
             incomplete_details: null,
             object: 'thread.message',
             run_id: null,
           }
+          updateMessage(activeThread.id, responseMessage.id, {
+            content: responseMessage.content,
+          })
 
           addNewMessage(responseMessage)
         }
@@ -278,12 +294,12 @@ const useSendMessage = () => {
       createMessage,
       startModel,
       chatCompletionNonStreaming,
-      streamChatMessages,
+      chatCompletionStreaming,
       summarizeThread,
     ]
   )
 
-  return { sendMessage }
+  return { sendMessage, stopInference }
 }
 
 export default useSendMessage
