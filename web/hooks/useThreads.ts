@@ -7,7 +7,10 @@ import { toaster } from '@/containers/Toast'
 
 import useCortex from './useCortex'
 
-import { deleteChatMessageAtom as deleteChatMessagesAtom } from '@/helpers/atoms/ChatMessage.atom'
+import {
+  cleanChatMessageAtom,
+  deleteChatMessageAtom,
+} from '@/helpers/atoms/ChatMessage.atom'
 
 import { setThreadMessagesAtom } from '@/helpers/atoms/ChatMessage.atom'
 import {
@@ -20,13 +23,15 @@ const useThreads = () => {
   const setThreads = useSetAtom(threadsAtom)
   const setActiveThreadId = useSetAtom(setActiveThreadIdAtom)
   const setThreadMessage = useSetAtom(setThreadMessagesAtom)
-  const deleteMessages = useSetAtom(deleteChatMessagesAtom)
+  const deleteMessages = useSetAtom(deleteChatMessageAtom)
   const deleteThreadState = useSetAtom(deleteThreadAtom)
+  const cleanMessages = useSetAtom(cleanChatMessageAtom)
   const {
     fetchThreads,
     createThread,
     fetchMessages,
     deleteThread: deleteCortexThread,
+    cleanThread: cleanCortexThread,
   } = useCortex()
 
   const getThreadList = useCallback(async () => {
@@ -76,11 +81,20 @@ const useThreads = () => {
     [deleteMessages, deleteCortexThread, deleteThreadState]
   )
 
+  const cleanThread = useCallback(
+    async (threadId: string) => {
+      await cleanCortexThread(threadId)
+      cleanMessages(threadId)
+    },
+    [cleanCortexThread, cleanMessages]
+  )
+
   return {
     getThreadList,
     createThread: createNewThread,
     setActiveThread,
     deleteThread,
+    cleanThread,
   }
 }
 

@@ -61,7 +61,12 @@ const useCortex = () => {
   const fetchModels = useCallback(async () => {
     const models: Model[] = []
     for await (const model of cortex.models.list()) {
-      models.push(model)
+      models.push({
+        ...model,
+        model: model.id,
+        // @ts-expect-error each model must have associated files
+        files: model['files'],
+      })
     }
     return models
   }, [cortex.models])
@@ -96,9 +101,8 @@ const useCortex = () => {
     async (
       chatCompletionCreateParams: ChatCompletionCreateParamsNonStreaming,
       options?: Record<string, unknown>
-    ) =>
-      // @ts-expect-error stream is a required parameter
-      cortex.chat.completions.create(chatCompletionCreateParams, options),
+      // @ts-expect-error incompatible types
+    ) => cortex.chat.completions.create(chatCompletionCreateParams, options),
     [cortex.chat.completions]
   )
 
@@ -106,12 +110,8 @@ const useCortex = () => {
     async (
       chatCompletionCreateParams: ChatCompletionCreateParamsStreaming,
       options?: Record<string, unknown>
-    ) =>
-      cortex.chat.completions.create(
-        // @ts-expect-error stream is a required parameter
-        chatCompletionCreateParams,
-        options
-      ),
+      // @ts-expect-error incompatible types
+    ) => cortex.chat.completions.create(chatCompletionCreateParams, options),
     [cortex.chat.completions]
   )
 
@@ -122,9 +122,10 @@ const useCortex = () => {
     [cortex.models]
   )
 
-  const cleanThread = useCallback(async (threadId: string) => {
-    // TODO: OpenAI does not support this
-  }, [])
+  const cleanThread = useCallback(
+    async (threadId: string) => cortex.beta.threads.clean(threadId),
+    [cortex.beta.threads]
+  )
 
   const deleteThread = useCallback(
     async (threadId: string) => {
@@ -164,6 +165,7 @@ const useCortex = () => {
   const createThread = useCallback(
     async (assistant: Assistant) => {
       const createThreadResponse = await cortex.beta.threads.create({
+        // @ts-expect-error customize so that each thread will have an assistant
         assistants: [assistant],
       })
       const thread: Thread = {

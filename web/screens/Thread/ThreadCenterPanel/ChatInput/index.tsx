@@ -18,6 +18,7 @@ import {
   ChevronUpIcon,
   Settings2Icon,
   ShapesIcon,
+  PaperclipIcon,
 } from 'lucide-react'
 
 import { twMerge } from 'tailwind-merge'
