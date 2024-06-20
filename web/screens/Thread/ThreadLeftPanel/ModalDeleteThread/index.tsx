@@ -1,9 +1,11 @@
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 
 import React from 'react'
 
 import { Modal, ModalClose, Button } from '@janhq/joi'
 import { Trash2Icon } from 'lucide-react'
+
+import { toaster } from '@/containers/Toast'
 
 import useThreads from '@/hooks/useThreads'
 
@@ -14,14 +16,18 @@ type Props = {
 
 const ModalDeleteThread: React.FC<Props> = ({ id, title }) => {
   const { deleteThread } = useThreads()
+  const isDeletingThreadRef = useRef(false)
 
-  const onDeleteThreadClick = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-      e.stopPropagation()
-      deleteThread(id, title)
-    },
-    [deleteThread, id, title]
-  )
+  const onDeleteThreadClick = useCallback(async () => {
+    if (isDeletingThreadRef.current) return
+    await deleteThread(id)
+    toaster({
+      title: 'Thread successfully deleted.',
+      description: `Thread ${title} has been successfully deleted.`,
+      type: 'success',
+    })
+    isDeletingThreadRef.current = false
+  }, [deleteThread, id, title])
 
   return (
     <Modal

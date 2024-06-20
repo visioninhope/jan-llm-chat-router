@@ -59,21 +59,11 @@ const useThreads = () => {
   )
 
   const deleteThread = useCallback(
-    async (threadId: string, title: string) => {
+    async (threadId: string) => {
       try {
         await deleteCortexThread(threadId)
         deleteThreadState(threadId)
         deleteMessages(threadId)
-
-        // TODO: Handle case: if empty thread then create new thread and set it as active
-        // else then set active thread id as the first thread in the list
-        // has to be done outside of this hook
-
-        toaster({
-          title: 'Thread successfully deleted.',
-          description: `Thread ${title} has been successfully deleted.`,
-          type: 'success',
-        })
       } catch (err) {
         console.error(err)
       }

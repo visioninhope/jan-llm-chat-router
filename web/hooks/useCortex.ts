@@ -73,12 +73,16 @@ const useCortex = () => {
 
   const fetchMessages = useCallback(
     async (threadId: string) => {
-      const messages: Message[] = []
-      const response = await cortex.beta.threads.messages.list(threadId)
-      response.data.forEach((message) => {
-        messages.push(message)
-      })
-      return messages
+      try {
+        const messages: Message[] = []
+        const response = await cortex.beta.threads.messages.list(threadId)
+        response.data.forEach((message) => {
+          messages.push(message)
+        })
+        return messages
+      } catch (error) {
+        return []
+      }
     },
     [cortex.beta.threads.messages]
   )

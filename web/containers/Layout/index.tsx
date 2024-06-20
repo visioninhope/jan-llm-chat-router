@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 import { motion as m } from 'framer-motion'
 
-import { useAtom, useAtomValue } from 'jotai'
+import { useAtomValue, useSetAtom } from 'jotai'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -36,7 +36,7 @@ import { mainViewStateAtom } from '@/helpers/atoms/App.atom'
 import { reduceTransparentAtom } from '@/helpers/atoms/Setting.atom'
 
 const BaseLayout = () => {
-  const [mainViewState, setMainViewState] = useAtom(mainViewStateAtom)
+  const setMainViewState = useSetAtom(mainViewStateAtom)
   const importModelStage = useAtomValue(getImportModelStageAtom)
   const reduceTransparent = useAtomValue(reduceTransparentAtom)
 
@@ -59,14 +59,13 @@ const BaseLayout = () => {
       <div className="relative top-9 flex h-[calc(100vh-(36px+36px))] w-screen">
         <RibbonPanel />
         <m.div
-          key={mainViewState}
           initial={{ opacity: 0, y: -8 }}
           className="h-full w-full"
           animate={{
             opacity: 1,
             y: 0,
             transition: {
-              duration: 0.5,
+              duration: 0.3,
             },
           }}
         >
